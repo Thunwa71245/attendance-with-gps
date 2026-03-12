@@ -1,24 +1,944 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แดชบอร์ดการเข้า-ออกงาน | Attendance Dashboard</title>
+    
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="dashboard.css">
+    </head>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-container">
+            <div>
+                <h1>📊 แดชบอร์ดการเข้า-ออกงาน</h1>
+                <div class="header-subtitle">Attendance Management Dashboard</div>
+                <div class="header-date" id="currentDate"></div>
+            </div>
+            <!-- Google Sheet Button (World-Class Hidden UI) -->
+            <div class="wfh-link-wrapper">
+                <a href="https://docs.google.com/spreadsheets/d/1WXGzRquZso9A3by62DT0ezApDJ-zNi6B-Xz7G-JD2zM/edit?gid=0#gid=0" target="_blank" class="wfh-link-btn" title="ดูข้อมูล WFH">
+                    <span class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </span>
+                    <span class="text">ดูข้อมูล Google Sheet (WFH)</span>
+                </a>
+            </div>
+        </div>
+    </div>
 
-<title>Dashboard</title>
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" data-tab="summary">📊 สรุปผลการเข้าออก</button>
+        </div>
 
-</head>
+        <!-- Summary Tab -->
+        <div id="summary" class="tab-content active">
+            <!-- Month Picker -->
+            <div class="month-picker">
+                <button class="month-nav-btn" id="prevMonthBtn" onclick="changeMonth(-1)">← เดือนก่อนหน้า</button>
+                <div class="month-picker-container">
+                    <div class="month-display" id="monthDisplay" onclick="toggleMiniCalendar()">มีนาคม 2569 📅</div>
+                    <div class="mini-calendar" id="miniCalendar">
+                        <div class="mini-calendar-header">
+                            <button onclick="changeMiniYear(-1)">←</button>
+                            <span id="miniYearDisplay">2569</span>
+                            <button onclick="changeMiniYear(1)">→</button>
+                        </div>
+                        <div class="mini-calendar-months" id="miniMonthGrid"></div>
+                    </div>
+                </div>
+                <button class="month-nav-btn" id="nextMonthBtn" onclick="changeMonth(1)">เดือนถัดไป →</button>
+            </div>
 
-<body>
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <!-- ข้อมูลภาพรวมใหม่ -->
+                <div class="stat-card info">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-label">พนักงานทั้งหมด</div>
+                    <div class="stat-value" id="totalEmployees">0</div>
+                    <div class="stat-description">คน (ในระบบ)</div>
+                </div>
 
-<h2>Attendance Dashboard</h2>
+                <div class="stat-card purple">
+                    <div class="stat-icon">🗓️</div>
+                    <div class="stat-label">วันทำงานในเดือนนี้</div>
+                    <div class="stat-value" id="totalWorkingDays">0</div>
+                    <div class="stat-description">วัน (ไม่รวมวันหยุด)</div>
+                </div>
 
-<p>ดูข้อมูลได้จาก Google Sheet</p>
+                <!-- สถิติการเข้างาน -->
+                <div class="stat-card success" id="onTimeCard" onclick="showStatusFilter('on-time')">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-label">มาตรงเวลา</div>
+                    <div class="stat-value" id="totalOnTime">0</div>
+                    <div class="stat-description">ครั้ง (เดือนนี้)</div>
+                </div>
+                
+                <div class="stat-card danger" id="absentCard" onclick="showStatusFilter('absent')">
+                    <div class="stat-icon">✕</div>
+                    <div class="stat-label">ขาดงาน</div>
+                    <div class="stat-value" id="totalAbsent">0</div>
+                    <div class="stat-description">ครั้ง (เดือนนี้)</div>
+                </div>
+                
+                <div class="stat-card warning" id="lateCard" onclick="showStatusFilter('late')">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-label">มาสาย</div>
+                    <div class="stat-value" id="totalLate">0</div>
+                    <div class="stat-description">ครั้ง (เดือนนี้)</div>
+                </div>
+            </div>
 
-<a href="PUT_GOOGLE_SHEET_LINK" target="_blank">
+            <!-- Attendance Rate -->
+            <div class="attendance-rate">
+                <h2 class="section-title">📈 อัตราการเข้างานประจำเดือน</h2>
+                <div class="rate-grid">
+                    <div class="rate-item">
+                        <div class="rate-item-label">อัตราการเข้างาน</div>
+                        <div class="rate-progress">
+                            <div class="rate-progress-bar" id="avgAttendanceBar" style="width: 0%"></div>
+                        </div>
+                        <div class="rate-percentage" id="avgAttendancePercent">0%</div>
+                    </div>
+                    <div class="rate-item">
+                        <div class="rate-item-label">อัตราการตรงเวลา</div>
+                        <div class="rate-progress">
+                            <div class="rate-progress-bar" id="onTimeBar" style="width: 0%; background: #10b981;"></div>
+                        </div>
+                        <div class="rate-percentage" id="onTimePercent">0%</div>
+                    </div>
+                    <div class="rate-item">
+                        <div class="rate-item-label">อัตราการมาสาย</div>
+                        <div class="rate-progress">
+                            <div class="rate-progress-bar" id="lateBar" style="width: 0%; background: #f59e0b;"></div>
+                        </div>
+                        <div class="rate-percentage" id="latePercent">0%</div>
+                    </div>
+                    <div class="rate-item">
+                        <div class="rate-item-label">อัตราการขาด</div>
+                        <div class="rate-progress">
+                            <div class="rate-progress-bar" id="absentBar" style="width: 0%; background: #ef4444;"></div>
+                        </div>
+                        <div class="rate-percentage" id="absentPercent">0%</div>
+                    </div>
+                </div>
+            </div>
 
-Open Attendance Sheet
+            <!-- Status Lists -->
+            <div class="status-lists-grid">
+                <div class="status-list">
+                    <div class="list-header present">
+                        <div class="list-header-title">✓ มาตรงเวลา (ในเดือนนี้)</div>
+                        <div class="list-count present" id="ontimeCount">0</div>
+                    </div>
+                    <div class="list-items" id="ontimeList">
+                        <div class="empty-list">ไม่มีข้อมูล</div>
+                    </div>
+                </div>
 
-</a>
+                <div class="status-list">
+                    <div class="list-header late">
+                        <div class="list-header-title">⏰ มาสาย (ในเดือนนี้)</div>
+                        <div class="list-count late" id="lateCount">0</div>
+                    </div>
+                    <div class="list-items" id="lateList">
+                        <div class="empty-list">ไม่มีข้อมูล</div>
+                    </div>
+                </div>
 
+                <div class="status-list">
+                    <div class="list-header absent">
+                        <div class="list-header-title">✕ ขาดงาน (ในเดือนนี้)</div>
+                        <div class="list-count absent" id="absentCount">0</div>
+                    </div>
+                    <div class="list-items" id="absentList">
+                        <div class="empty-list">ไม่มีข้อมูล</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="chart-card">
+                    <h3 class="section-title">📊 จำนวนวันมาทำงานรายบุคคล (เดือนนี้)</h3>
+                    <div class="chart-container">
+                        <canvas id="attendanceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3 class="section-title">⏱️ เวลามาเฉลี่ย (เดือนนี้)</h3>
+                    <div class="chart-container">
+                        <canvas id="averageTimeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3 class="section-title">📊 สัดส่วนการมาทำงาน (เดือนนี้)</h3>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3 class="section-title">⏰ สัดส่วนการมาสาย (เดือนนี้)</h3>
+                    <div class="chart-container">
+                        <canvas id="lateChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Table -->
+            <div class="table-section">
+                <div class="table-header">
+                    <div class="table-title">📋 รายชื่อการเข้า-ออกงาน</div>
+                    <div class="table-controls">
+                        <input type="text" class="search-input" id="searchInput" placeholder="ค้นหาชื่อพนักงาน...">
+                        <select class="filter-select" id="statusFilter">
+                            <option value="">สถานะทั้งหมด</option>
+                            <option value="on-time">✓ มาตรงเวลา</option>
+                            <option value="late">⏰ มาสาย</option>
+                            <option value="absent">✕ ขาดงาน</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="main-table">
+                        <thead>
+                            <tr>
+                                <th>ข้อมูลพนักงาน</th>
+                                <th>เวลาเข้า</th>
+                                <th>เวลาออก</th>
+                                <th>จำนวนวันมา (เดือนนี้)</th>
+                                <th>สถานะวันนี้</th>
+                                <th>วันที่ลงบันทึก</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTable">
+                            <tr>
+                                <td colspan="6" class="loading">
+                                    <div>กำลังโหลดข้อมูล...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content column">
+            
+            <!-- Premium Header Modal -->
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 18px;">
+                    <div class="modal-avatar" id="modalAvatar">ส</div>
+                    <div>
+                        <div style="font-size: 22px; font-weight: 700; letter-spacing: 0.5px;" id="modalTitle">ชื่อพนักงาน</div>
+                        <div style="font-size: 14px; opacity: 0.85; margin-top: 3px; display: flex; align-items: center; gap: 8px;">
+                            <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 20px; font-size: 12px;">พนักงานทั่วไป</span>
+                            <span>ประวัติการลงเวลาเข้า-ออกงาน</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeDetail()" title="ปิดหน้าต่าง">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Modal Mini Calendar -->
+                <div class="modal-calendar-container" id="detailCalendarContainer">
+                    <div class="modal-calendar-header">
+                        <button class="modal-month-nav-btn" onclick="changeDetailMonth(-1)">← เดือนก่อนหน้า</button>
+                        <div class="month-picker-container">
+                            <div class="month-display" id="detailMonthDisplay" onclick="toggleDetailMiniCalendar()">มีนาคม 2569 📅</div>
+                            <div class="mini-calendar" id="detailMiniCalendar" style="color: var(--gray-900);">
+                                <div class="mini-calendar-header">
+                                    <button onclick="changeDetailMiniYear(-1)">←</button>
+                                    <span id="detailMiniYearDisplay">2569</span>
+                                    <button onclick="changeDetailMiniYear(1)">→</button>
+                                </div>
+                                <div class="mini-calendar-months" id="detailMiniMonthGrid"></div>
+                            </div>
+                        </div>
+                        <button class="modal-month-nav-btn" onclick="changeDetailMonth(1)">เดือนถัดไป →</button>
+                    </div>
+                </div>
+                
+                <!-- Premium Stat Cards -->
+                <div class="modal-stats" id="modalStats">
+                    <!-- จะถูกเติมด้วย JavaScript แบบไล่ระดับสีสวยงาม -->
+                </div>
+                
+                <!-- โครงสร้าง Layout มาตรฐานโลกใหม่ (Flexbox) -->
+                <div class="modal-content-flex">
+                    
+                    <!-- กราฟวิเคราะห์ (ด้านซ้าย) -->
+                    <div class="modal-chart-wrapper" id="detailChartContainer" style="display: none;">
+                        <h4 style="text-align: center; font-size: 15px; font-weight: 600; color: var(--gray-800); margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--gray-100);">📊 สัดส่วนการเข้างาน</h4>
+                        <div style="position: relative; height: 220px; width: 100%;">
+                            <canvas id="detailChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- ตารางข้อมูลด้านขวา พร้อม Smart Filter -->
+                    <div class="modal-detail-right">
+                        <div class="modal-detail-controls">
+                            <div style="font-size: 16px; font-weight: 600; color: var(--gray-800); display: flex; align-items: center; gap: 8px;">
+                                <span>📋</span> รายการลงเวลา
+                            </div>
+                            <select id="detailStatusFilter" class="filter-select" style="padding: 8px 35px 8px 15px; border-radius: 8px;" onchange="updateDetailTableOnly()">
+                                <option value="">แสดงทั้งหมด</option>
+                                <option value="on-time">✓ เฉพาะมาตรงเวลา</option>
+                                <option value="late">⏰ เฉพาะมาสาย</option>
+                                <option value="absent">✕ เฉพาะขาดงาน</option>
+                            </select>
+                        </div>
+                        
+                        <div class="modal-table-container">
+                            <table class="modal-table">
+                                <thead>
+                                    <tr>
+                                        <th>วันที่</th>
+                                        <th>เวลาเข้า</th>
+                                        <th>เวลาออก</th>
+                                        <th>สถานะ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modalTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>© 2026 Attendance Management System | Panyapiwat Institute of Management</p>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // เปลี่ยนค่าเริ่มต้นเป็น Array ว่าง เพื่อรอรับข้อมูลจริง
+        let allAttendanceData = [];
+
+        let charts = {};
+        let currentMonth = new Date();
+        let detailModalMonth = new Date();
+        let detailModalEmployeeName = '';
+        let detailModalSelectedDay = null;
+        let detailChartInstance = null;
+        let currentEmployeeData = []; // เก็บข้อมูลส่วนตัวของพนักงานรายคน
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            setupEventListeners();
+            setupTabNavigation();
+        });
+
+        function initializeDashboard() {
+            updateCurrentDate();
+            updateMonthDisplay();
+            loadAttendanceData();
+            updateDashboard();
+        }
+
+        function updateCurrentDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Bangkok' };
+            const today = new Date().toLocaleDateString('th-TH', options);
+            document.getElementById('currentDate').textContent = today;
+        }
+
+        function updateMonthDisplay() {
+            const options = { month: 'long', year: 'numeric' };
+            const monthText = currentMonth.toLocaleDateString('th-TH', options);
+            document.getElementById('monthDisplay').textContent = monthText + ' 📅';
+            updateDashboard();
+        }
+
+        function changeMonth(direction) {
+            currentMonth.setMonth(currentMonth.getMonth() + direction);
+            updateMonthDisplay();
+        }
+
+        function changeDetailMonth(direction) {
+            detailModalMonth.setMonth(detailModalMonth.getMonth() + direction);
+            detailModalSelectedDay = null;
+            updateDetailModal();
+        }
+
+        function updateDetailMonthYearDisplay() {
+            const options = { month: 'long', year: 'numeric' };
+            const monthText = detailModalMonth.toLocaleDateString('th-TH', options);
+            document.getElementById('detailMonthDisplay').textContent = monthText + ' 📅';
+        }
+
+        // ฟังก์ชันโหลดข้อมูล (คุณสามารถแก้ไขตรงนี้เพื่อดึงข้อมูลจาก API หรือ Google Sheets ในอนาคต)
+        function loadAttendanceData() {
+            // ปัจจุบันตั้งค่าเป็นข้อมูลว่าง
+            allAttendanceData = []; 
+        }
+
+        function dateToString(date) {
+            const d = new Date(date);
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function updateDashboard() {
+            updateStatistics();
+            updateStatusLists();
+            updateAttendanceRates();
+            updateTable();
+            updateCharts();
+        }
+
+        function isDateInCurrentMonth(dateString) {
+            const [day, month, year] = dateString.split('/').map(Number);
+            const recordDate = new Date(year, month - 1, day);
+            return recordDate.getMonth() === currentMonth.getMonth() && recordDate.getFullYear() === currentMonth.getFullYear();
+        }
+
+        function updateStatistics() {
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            const onTime = monthRecords.filter(r => r.status === 'on-time').length;
+            const absent = monthRecords.filter(r => r.status === 'absent').length;
+            const late = monthRecords.filter(r => r.status === 'late').length;
+            
+            document.getElementById('totalOnTime').textContent = onTime;
+            document.getElementById('totalAbsent').textContent = absent;
+            document.getElementById('totalLate').textContent = late;
+
+            // คำนวณจำนวนพนักงานทั้งหมดแบบไม่ซ้ำกัน
+            const uniqueEmployees = new Set(allAttendanceData.map(r => r.name)).size;
+            document.getElementById('totalEmployees').textContent = uniqueEmployees;
+
+            // คำนวณวันทำงานในเดือนนั้นๆ (ไม่รวมเสาร์-อาทิตย์)
+            const workingDays = getWorkingDaysInMonth(currentMonth.getFullYear(), currentMonth.getMonth());
+            document.getElementById('totalWorkingDays').textContent = workingDays;
+        }
+
+        // ฟังก์ชันช่วยคำนวณจำนวนวันทำการในแต่ละเดือน
+        function getWorkingDaysInMonth(year, month) {
+            let count = 0;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for (let i = 1; i <= daysInMonth; i++) {
+                const d = new Date(year, month, i);
+                if (d.getDay() !== 0 && d.getDay() !== 6) { // 0 = อาทิตย์, 6 = เสาร์
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        function updateStatusLists() {
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            const absentPeople = new Set();
+            const onTimePeople = new Set();
+            const latePeople = new Set();
+            
+            monthRecords.forEach(record => {
+                if (record.status === 'absent') absentPeople.add(record.name);
+                else if (record.status === 'on-time') onTimePeople.add(record.name);
+                else if (record.status === 'late') latePeople.add(record.name);
+            });
+            
+            document.getElementById('absentCount').textContent = absentPeople.size;
+            document.getElementById('ontimeCount').textContent = onTimePeople.size;
+            document.getElementById('lateCount').textContent = latePeople.size;
+            
+            updateListItems('#absentList', Array.from(absentPeople).sort(), 'absent');
+            updateListItems('#ontimeList', Array.from(onTimePeople).sort(), 'on-time');
+            updateListItems('#lateList', Array.from(latePeople).sort(), 'late');
+        }
+
+        function updateListItems(selector, names, defaultFilter) {
+            const list = document.querySelector(selector);
+            if (names.length > 0) {
+                list.innerHTML = names.map(name => {
+                    return `<div class="list-item" onclick="showDetail('${name}', '${defaultFilter}')">
+                        <div>
+                            <div class="list-item-name">${name}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+            } else {
+                list.innerHTML = '<div class="empty-list">ไม่มีข้อมูล</div>';
+            }
+        }
+
+        function showDetail(employeeName, defaultFilter = '') {
+            detailModalEmployeeName = employeeName;
+            detailModalMonth = new Date();
+            detailModalSelectedDay = null;
+            
+            const filterSelect = document.getElementById('detailStatusFilter');
+            if (filterSelect) filterSelect.value = defaultFilter;
+            
+            updateDetailModal();
+        }
+
+        function updateDetailModal() {
+            currentEmployeeData = allAttendanceData
+                .filter(record => record.name === detailModalEmployeeName && isDateInMonth(record.date, detailModalMonth));
+
+            currentEmployeeData.sort((a, b) => new Date(b.date.split('/').reverse().join('-')) - new Date(a.date.split('/').reverse().join('-')));
+            
+            const onTime = currentEmployeeData.filter(r => r.status === 'on-time').length;
+            const late = currentEmployeeData.filter(r => r.status === 'late').length;
+            const absent = currentEmployeeData.filter(r => r.status === 'absent').length;
+            
+            updateDetailMonthYearDisplay();
+            
+            // อัปเดต Profile Header ใน Modal
+            document.getElementById('modalAvatar').textContent = detailModalEmployeeName.charAt(0);
+            document.getElementById('modalTitle').textContent = detailModalEmployeeName;
+            
+            // อัปเดตกล่องตัวเลขสถิติแบบพรีเมียม (Premium Stat Cards)
+            document.getElementById('modalStats').innerHTML = `
+                <div class="modal-stat-item" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-left: 4px solid #10b981;">
+                    <div style="font-size: 24px; margin-bottom: 8px;">✅</div>
+                    <div class="modal-stat-label" style="color: #047857;">มาตรงเวลา</div>
+                    <div class="modal-stat-value" style="color: #064e3b;">${onTime}</div>
+                </div>
+                <div class="modal-stat-item" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 4px solid #f59e0b;">
+                    <div style="font-size: 24px; margin-bottom: 8px;">⏰</div>
+                    <div class="modal-stat-label" style="color: #b45309;">มาสาย</div>
+                    <div class="modal-stat-value" style="color: #78350f;">${late}</div>
+                </div>
+                <div class="modal-stat-item" style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-left: 4px solid #ef4444;">
+                    <div style="font-size: 24px; margin-bottom: 8px;">✕</div>
+                    <div class="modal-stat-label" style="color: #b91c1c;">ขาดงาน</div>
+                    <div class="modal-stat-value" style="color: #7f1d1d;">${absent}</div>
+                </div>
+            `;
+            
+            renderDetailChart(onTime, late, absent);
+            updateDetailTableOnly(); // ดึงข้อมูลใส่ตารางพร้อมเช็คตัวกรอง
+            
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        // ฟังก์ชันวาดตารางฝั่งขวาของ Modal (ทำงานร่วมกับตัวกรอง)
+        function updateDetailTableOnly() {
+            const filterVal = document.getElementById('detailStatusFilter').value;
+            let tableData = filterVal ? currentEmployeeData.filter(r => r.status === filterVal) : currentEmployeeData;
+            
+            const tbody = document.getElementById('modalTableBody');
+            
+            if (tableData.length === 0) {
+                tbody.innerHTML = `
+                <tr>
+                    <td colspan="4">
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px;">
+                            <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;">📭</div>
+                            <div style="color: var(--gray-900); font-weight: 600; font-size: 15px;">ไม่มีประวัติในหมวดหมู่นี้</div>
+                            <div style="color: var(--gray-500); font-size: 13px; margin-top: 5px;">พนักงานคนนี้ไม่มีข้อมูลในเดือนหรือสถานะที่คุณเลือก</div>
+                        </div>
+                    </td>
+                </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = tableData.map(record => `
+                <tr>
+                    <td style="font-weight: 500;">${record.date}</td>
+                    <td style="color: ${record.entryTime === '-' ? 'var(--gray-400)' : 'inherit'};">${record.entryTime}</td>
+                    <td style="color: ${record.exitTime === '-' ? 'var(--gray-400)' : 'inherit'};">${record.exitTime}</td>
+                    <td>
+                        <span class="status-badge badge-${record.status === 'on-time' ? 'on-time' : record.status === 'late' ? 'late' : 'absent'}">
+                            ${getStatusLabel(record.status)}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderDetailChart(onTime, late, absent) {
+            const container = document.getElementById('detailChartContainer');
+            if (onTime === 0 && late === 0 && absent === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'block';
+            const ctx = document.getElementById('detailChart').getContext('2d');
+            
+            if (detailChartInstance) detailChartInstance.destroy();
+            
+            detailChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['มาตรงเวลา', 'มาสาย', 'ขาดงาน'],
+                    datasets: [{
+                        data: [onTime, late, absent],
+                        backgroundColor: ['rgba(16, 185, 129, 0.85)', 'rgba(245, 158, 11, 0.85)', 'rgba(239, 68, 68, 0.85)'],
+                        borderColor: ['#ffffff', '#ffffff', '#ffffff'],
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { font: { family: "'Prompt', 'Poppins', sans-serif" }, padding: 20 } } 
+                    }
+                }
+            });
+        }
+
+        function isDateInMonth(dateString, month) {
+            const [day, d_month, year] = dateString.split('/').map(Number);
+            const recordDate = new Date(year, d_month - 1, day);
+            return recordDate.getMonth() === month.getMonth() && recordDate.getFullYear() === month.getFullYear();
+        }
+
+        function closeDetail() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        function updateAttendanceRates() {
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            const totalRecords = monthRecords.length || 1;
+            
+            const onTimeCount = monthRecords.filter(r => r.status === 'on-time').length;
+            const lateCount = monthRecords.filter(r => r.status === 'late').length;
+            const absentCount = monthRecords.filter(r => r.status === 'absent').length;
+            const presentCount = onTimeCount + lateCount;
+            
+            const avgAttendanceRate = (presentCount / totalRecords) * 100;
+            document.getElementById('avgAttendancePercent').textContent = Math.round(avgAttendanceRate) + '%';
+            document.getElementById('avgAttendanceBar').style.width = avgAttendanceRate + '%';
+            
+            const onTimeRate = (onTimeCount / presentCount) * 100 || 0;
+            document.getElementById('onTimePercent').textContent = Math.round(onTimeRate) + '%';
+            document.getElementById('onTimeBar').style.width = onTimeRate + '%';
+            
+            const lateRate = (lateCount / presentCount) * 100 || 0;
+            document.getElementById('latePercent').textContent = Math.round(lateRate) + '%';
+            document.getElementById('lateBar').style.width = lateRate + '%';
+            
+            const absentRate = (absentCount / totalRecords) * 100;
+            document.getElementById('absentPercent').textContent = Math.round(absentRate) + '%';
+            document.getElementById('absentBar').style.width = absentRate + '%';
+        }
+
+        function updateTable() {
+            document.querySelector('.table-title').textContent = '📋 รายชื่อการเข้า-ออกงาน';
+
+            const tbody = document.getElementById('attendanceTable');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            let monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+
+            let filtered = monthRecords.filter(record => {
+                const matchesSearch = record.name.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || record.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 50px 20px;">
+                                <div style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;">📭</div>
+                                <div style="color: var(--gray-900); font-weight: 600; font-size: 16px; margin-bottom: 5px;">ไม่พบข้อมูล</div>
+                                <div style="color: var(--gray-500); font-size: 14px;">ไม่มีรายการที่ตรงกับเงื่อนไขการค้นหาของคุณในขณะนี้</div>
+                            </div>
+                        </td>
+                    </tr>`;
+                return;
+            }
+            
+            filtered.sort((a, b) => new Date(b.date.split('/').reverse().join('-')) - new Date(a.date.split('/').reverse().join('-')));
+            
+            tbody.innerHTML = filtered.map(record => `
+                <tr onclick="showDetail('${record.name}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเชิงลึก">
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0;">
+                                ${record.name.charAt(0)}
+                            </div>
+                            <div style="display: flex; flex-direction: column;">
+                                <strong style="color: var(--gray-900); font-weight: 600; font-size: 14px;">${record.name}</strong>
+                                <span style="font-size: 12px; color: var(--gray-500); margin-top: 2px;">พนักงานทั่วไป</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span style="font-weight: 500; font-size: 15px; color: ${record.entryTime === '-' ? 'var(--gray-400)' : 'var(--gray-700)'};">${record.entryTime}</span></td>
+                    <td><span style="font-weight: 500; font-size: 15px; color: ${record.exitTime === '-' ? 'var(--gray-400)' : 'var(--gray-700)'};">${record.exitTime}</span></td>
+                    <td>
+                        <div style="background: #f8fafc; border: 1px solid var(--gray-200); border-radius: 6px; padding: 4px 12px; display: inline-block; font-weight: 600; font-size: 13px; color: var(--gray-700);">
+                            ${record.attendanceDays} วัน
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge badge-${record.status === 'on-time' ? 'on-time' : record.status === 'late' ? 'late' : 'absent'}">
+                            ${getStatusLabel(record.status)}
+                        </span>
+                    </td>
+                    <td style="color: var(--gray-500); font-size: 13px; font-weight: 500;">${record.date}</td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusLabel(status) {
+            const labels = { 'on-time': '✓ มาตรงเวลา', 'late': '⏰ มาสาย', 'absent': '✕ ขาดงาน' };
+            return labels[status] || status;
+        }
+
+        function updateCharts() {
+            updateAttendanceChart(); updateAverageTimeChart(); updateStatusChart(); updateLateChart();
+        }
+
+        function updateAttendanceChart() {
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            const nameGroups = {};
+            monthRecords.forEach(record => {
+                if (!nameGroups[record.name]) nameGroups[record.name] = 0;
+                if (record.status !== 'absent') nameGroups[record.name]++;
+            });
+            
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            if (charts.attendance) charts.attendance.destroy();
+            charts.attendance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(nameGroups),
+                    datasets: [{ label: 'จำนวนวัน', data: Object.values(nameGroups), backgroundColor: 'rgba(16, 185, 129, 0.7)', borderColor: 'rgba(16, 185, 129, 1)', borderWidth: 2, borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
+            });
+        }
+
+        function updateAverageTimeChart() {
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            const nameGroups = {};
+            monthRecords.forEach(record => {
+                if (record.status !== 'absent') {
+                    if (!nameGroups[record.name]) nameGroups[record.name] = { sum: 0, count: 0 };
+                    const [hours, minutes] = record.entryTime.split(':').map(Number);
+                    nameGroups[record.name].sum += hours + (minutes / 60);
+                    nameGroups[record.name].count++;
+                }
+            });
+            const averages = {};
+            Object.keys(nameGroups).forEach(name => { averages[name] = Math.round(nameGroups[name].sum / nameGroups[name].count * 100) / 100; });
+            
+            const ctx = document.getElementById('averageTimeChart').getContext('2d');
+            if (charts.averageTime) charts.averageTime.destroy();
+            charts.averageTime = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(averages),
+                    datasets: [{ label: 'เวลา (ชม)', data: Object.values(averages), borderColor: 'rgba(37, 99, 235, 1)', backgroundColor: 'rgba(37, 99, 235, 0.1)', borderWidth: 3, fill: true, tension: 0.4, pointRadius: 5 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, min: 6, max: 10 }, x: { grid: { display: false } } } }
+            });
+        }
+
+        function updateStatusChart() {
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            const present = monthRecords.filter(r => r.status !== 'absent').length;
+            const absent = monthRecords.filter(r => r.status === 'absent').length;
+            
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            if (charts.status) charts.status.destroy();
+            charts.status = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['มาทำงาน', 'ขาด'],
+                    datasets: [{ data: [present, absent], backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(239, 68, 68, 0.8)'], borderColor: ['rgba(16, 185, 129, 1)', 'rgba(239, 68, 68, 1)'], borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function updateLateChart() {
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            const onTime = monthRecords.filter(r => r.status === 'on-time').length;
+            const late = monthRecords.filter(r => r.status === 'late').length;
+            
+            const ctx = document.getElementById('lateChart').getContext('2d');
+            if (charts.late) charts.late.destroy();
+            charts.late = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['ตรงเวลา', 'สาย'],
+                    datasets: [{ data: [onTime, late], backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)'], borderColor: ['rgba(16, 185, 129, 1)', 'rgba(245, 158, 11, 1)'], borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function setupTabNavigation() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById(tabName).classList.add('active');
+                });
+            });
+        }
+
+        function showStatusFilter(type) {
+            const tbody = document.getElementById('attendanceTable');
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            let title = '📋 รายชื่อการเข้า-ออกงาน';
+
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+
+            if (type === 'absent') {
+                const uniqueNames = new Set();
+                monthRecords.filter(r => r.status === 'absent').forEach(r => uniqueNames.add(r.name));
+                const filtered = Array.from(uniqueNames).sort();
+                title = '✕ ขาดงาน (ในเดือนนั้น)';
+                
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">ไม่มีข้อมูล</td></tr>';
+                    document.querySelector('.table-title').textContent = title;
+                    return;
+                }
+                tbody.innerHTML = filtered.map((name, idx) => `<tr><td><strong>${idx + 1}. ${name}</strong></td><td colspan="5"></td></tr>`).join('');
+            } else if (type === 'on-time') {
+                const uniqueNames = new Set();
+                monthRecords.filter(r => r.status === 'on-time').forEach(r => uniqueNames.add(r.name));
+                const filtered = Array.from(uniqueNames).sort();
+                title = '✓ มาตรงเวลา (ในเดือนนั้น)';
+                
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">ไม่มีข้อมูล</td></tr>';
+                    document.querySelector('.table-title').textContent = title;
+                    return;
+                }
+                tbody.innerHTML = filtered.map((name, idx) => `<tr><td><strong>${idx + 1}. ${name}</strong></td><td colspan="5"></td></tr>`).join('');
+            } else if (type === 'late') {
+                const uniqueNames = new Set();
+                monthRecords.filter(r => r.status === 'late').forEach(r => uniqueNames.add(r.name));
+                const filtered = Array.from(uniqueNames).sort();
+                title = '⏰ มาสาย (ในเดือนนั้น)';
+                
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">ไม่มีข้อมูล</td></tr>';
+                    document.querySelector('.table-title').textContent = title;
+                    return;
+                }
+                tbody.innerHTML = filtered.map((name, idx) => `<tr><td><strong>${idx + 1}. ${name}</strong></td><td colspan="5"></td></tr>`).join('');
+            }
+            document.querySelector('.table-title').textContent = title;
+        }
+
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', updateTable);
+            document.getElementById('statusFilter').addEventListener('change', updateTable);
+            document.getElementById('detailModal').addEventListener('click', function(e) {
+                if (e.target === this) closeDetail();
+            });
+        }
+
+        // --- Mini Calendar Functions ---
+        let miniCalendarYear = currentMonth.getFullYear();
+
+        function toggleMiniCalendar() {
+            const cal = document.getElementById('miniCalendar');
+            cal.classList.toggle('active');
+            if(cal.classList.contains('active')) {
+                miniCalendarYear = currentMonth.getFullYear();
+                renderMiniCalendar();
+            }
+        }
+
+        function changeMiniYear(dir) {
+            miniCalendarYear += dir;
+            renderMiniCalendar();
+        }
+
+        function renderMiniCalendar() {
+            document.getElementById('miniYearDisplay').textContent = miniCalendarYear + 543;
+            const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            const grid = document.getElementById('miniMonthGrid');
+            grid.innerHTML = monthNames.map((m, i) => {
+                const isActive = (i === currentMonth.getMonth() && miniCalendarYear === currentMonth.getFullYear());
+                return `<button class="mini-month-btn ${isActive ? 'active' : ''}" onclick="selectMiniMonth(${i})">${m}</button>`;
+            }).join('');
+        }
+
+        function selectMiniMonth(monthIndex) {
+            currentMonth.setFullYear(miniCalendarYear);
+            currentMonth.setMonth(monthIndex);
+            updateMonthDisplay();
+            document.getElementById('miniCalendar').classList.remove('active');
+        }
+
+        // --- Detail Mini Calendar Functions ---
+        let detailMiniCalendarYear = detailModalMonth.getFullYear();
+
+        function toggleDetailMiniCalendar() {
+            const cal = document.getElementById('detailMiniCalendar');
+            cal.classList.toggle('active');
+            if(cal.classList.contains('active')) {
+                detailMiniCalendarYear = detailModalMonth.getFullYear();
+                renderDetailMiniCalendar();
+            }
+        }
+
+        function changeDetailMiniYear(dir) {
+            detailMiniCalendarYear += dir;
+            renderDetailMiniCalendar();
+        }
+
+        function renderDetailMiniCalendar() {
+            document.getElementById('detailMiniYearDisplay').textContent = detailMiniCalendarYear + 543;
+            const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            const grid = document.getElementById('detailMiniMonthGrid');
+            grid.innerHTML = monthNames.map((m, i) => {
+                const isActive = (i === detailModalMonth.getMonth() && detailMiniCalendarYear === detailModalMonth.getFullYear());
+                return `<button class="mini-month-btn ${isActive ? 'active' : ''}" onclick="selectDetailMiniMonth(${i})">${m}</button>`;
+            }).join('');
+        }
+
+        function selectDetailMiniMonth(monthIndex) {
+            detailModalMonth.setFullYear(detailMiniCalendarYear);
+            detailModalMonth.setMonth(monthIndex);
+            updateDetailMonthYearDisplay();
+            updateDetailModal();
+            document.getElementById('detailMiniCalendar').classList.remove('active');
+        }
+
+        document.addEventListener('click', function(e) {
+            const mainDisplay = document.getElementById('monthDisplay');
+            const mainCal = document.getElementById('miniCalendar');
+            if (mainCal && mainCal.classList.contains('active') && e.target !== mainDisplay && !mainCal.contains(e.target)) {
+                mainCal.classList.remove('active');
+            }
+            const detailDisplay = document.getElementById('detailMonthDisplay');
+            const detailCal = document.getElementById('detailMiniCalendar');
+            if (detailCal && detailCal.classList.contains('active') && e.target !== detailDisplay && !detailCal.contains(e.target)) {
+                detailCal.classList.remove('active');
+            }
+        });
+    </script>
 </body>
-
 </html>
