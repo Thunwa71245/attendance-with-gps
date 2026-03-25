@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>System Config</title>
+
+<style>
+
+body{
+font-family:Arial;
+padding:40px;
+max-width:500px;
+margin:auto;
+}
+
+input{
+width:100%;
+padding:10px;
+margin:10px 0;
+}
+
+button{
+padding:12px;
+font-size:16px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>System Config</h2>
+
+<label>Google Apps Script URL</label>
+<input id="gas_url">
+
+<label>Default Room</label>
+<input id="room" value="1-0308">
+
+<label>Start Time</label>
+<input id="start_time" value="08:00">
+
+<label>Close Time</label>
+<input id="close_time" value="09:00">
+
+<button onclick="save()">Save</button>
+
+<script>
+
+function load(){
+
+document.getElementById("gas_url").value =
+localStorage.getItem("gas_url") || ""
+
+}
+
+function save(){
+
+localStorage.setItem(
+"gas_url",
+document.getElementById("gas_url").value
+)
+
+alert("Saved")
+
+}
+
+load()
+
+</script>
+
+</body>
+</html>

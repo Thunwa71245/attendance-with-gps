@@ -1,46 +1,32 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Generate QR</title>
-
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-
+<link rel="stylesheet" href="style.css">
 </head>
-
-<body>
-
+<body class="teacher-page">
+<div class="container">
 <h2>Room QR Generator</h2>
-
-Room
-
+<label for="room">Room</label>
 <input id="room" value="1-0308">
-
-<br><br>
-
 <button onclick="generate()">Generate QR</button>
-
-<br><br>
-
 <div id="qrcode"></div>
-
+<a href="index.html" class="back">&larr; Back to Home</a>
+</div>
 <script>
-
 function generate(){
-
-let room=document.getElementById("room").value
-
-let url=location.origin+"/scan.html?room="+room
-
-document.getElementById("qrcode").innerHTML=""
-
-new QRCode(document.getElementById("qrcode"),url)
-
+  let room = document.getElementById("room").value;
+  let url = location.origin + window.location.pathname.replace('teacher.html', 'scan.html') + "?room=" + encodeURIComponent(room);
+  document.getElementById("qrcode").innerHTML = "";
+  new QRCode(document.getElementById("qrcode"), {
+    text: url, width: 200, height: 200
+  });
 }
-
+// Generate initially
+window.onload = generate;
 </script>
-
 </body>
-
 </html>
