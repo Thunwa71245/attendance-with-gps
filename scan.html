@@ -12,50 +12,50 @@
 <style>
 
 body{
-font-family:Arial;
-background:#f4f6f9;
-text-align:center;
-padding:30px;
+  font-family:Arial;
+  background:#f4f6f9;
+  text-align:center;
+  padding:30px;
 }
 
 .container{
-background:white;
-padding:25px;
-border-radius:10px;
-max-width:400px;
-margin:auto;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
+  background:white;
+  padding:25px;
+  border-radius:10px;
+  max-width:400px;
+  margin:auto;
+  box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
 
 input{
-width:100%;
-padding:10px;
-margin:10px 0;
+  width:100%;
+  padding:10px;
+  margin:10px 0;
 }
 
 button{
-padding:12px;
-width:100%;
-background:#2ecc71;
-color:white;
-border:none;
-font-size:16px;
-border-radius:6px;
-cursor:pointer;
+  padding:12px;
+  width:100%;
+  background:#2ecc71;
+  color:white;
+  border:none;
+  font-size:16px;
+  border-radius:6px;
+  cursor:pointer;
 }
 
 #reader{
-width:300px;
-margin:auto;
+  width:300px;
+  margin:auto;
 }
 
 #formSection{
-display:none;
+  display:none;
 }
 
 .roomLabel{
-font-weight:bold;
-margin-top:10px;
+  font-weight:bold;
+  margin-top:10px;
 }
 
 </style>
@@ -69,6 +69,9 @@ margin-top:10px;
 <h2>Intern Check-in</h2>
 
 <div id="reader"></div>
+
+<!-- 🔥 ปุ่ม upload (มือถือเท่านั้น) -->
+<input type="file" id="qrFile" accept="image/*" style="display:none;">
 
 <div class="roomLabel" id="roomDisplay"></div>
 
@@ -95,126 +98,151 @@ const MAX_DISTANCE = 50
 let scannedRoom = null
 let scanner = null
 
+// 📱 ตรวจว่าเป็นมือถือ
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+// ------------------ FUNCTION ------------------
+
 function getDistance(lat1, lon1, lat2, lon2){
 
-const R = 6371
+  const R = 6371
 
-const dLat = (lat2-lat1) * Math.PI/180
-const dLon = (lon2-lon1) * Math.PI/180
+  const dLat = (lat2-lat1) * Math.PI/180
+  const dLon = (lon2-lon1) * Math.PI/180
 
-const a =
-Math.sin(dLat/2) * Math.sin(dLat/2) +
-Math.cos(lat1*Math.PI/180) *
-Math.cos(lat2*Math.PI/180) *
-Math.sin(dLon/2) * Math.sin(dLon/2)
+  const a =
+  Math.sin(dLat/2) * Math.sin(dLat/2) +
+  Math.cos(lat1*Math.PI/180) *
+  Math.cos(lat2*Math.PI/180) *
+  Math.sin(dLon/2) * Math.sin(dLon/2)
 
-const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))
+  const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))
 
-return R*c*1000
-
+  return R*c*1000
 }
 
 function checkDuplicate(){
 
-let today = new Date().toDateString()
-let last = localStorage.getItem("checkin")
+  let today = new Date().toDateString()
+  let last = localStorage.getItem("checkin")
 
-if(last == today){
+  if(last == today){
+    alert("วันนี้คุณเช็คชื่อไปแล้ว")
+    return false
+  }
 
-alert("วันนี้คุณเช็คชื่อไปแล้ว")
-return false
-
+  return true
 }
 
-return true
-
-}
-
+// ✅ สแกนสำเร็จ
 function onScanSuccess(decodedText){
 
-// decodedText เช่น scan.html?room=1-0308
-let url = new URL(decodedText, window.location.origin)
+  let url = new URL(decodedText, window.location.origin)
+  scannedRoom = url.searchParams.get("room")
 
-scannedRoom = url.searchParams.get("room")
-
-// หยุดกล้อง
-scanner.clear()
-
-// แสดงห้อง
-document.getElementById("roomDisplay").innerText = "Room : " + scannedRoom
-
-// แสดงฟอร์ม
-document.getElementById("formSection").style.display = "block"
-
-}
-
-function checkin(){
-
-console.log("checkin clicked")
-
-if(!scannedRoom){
-alert("กรุณาสแกน QR ก่อน")
-return
-}
-
-let studentID = document.getElementById("student_id").value
-let name = document.getElementById("name").value
-
-if(!studentID || !name){
-alert("กรอกข้อมูลก่อน")
-return
-}
-
-let data = {
-student_id: studentID,
-name: name,
-room: scannedRoom
-}
-
-console.log(data)
-
-fetch(GAS_API_URL,{
-  method:"POST",
-  mode:"no-cors",
-  body:JSON.stringify(data)
-})
-.then(()=>{
-  alert("Check-in success")
-})
-
-}
-
-// เริ่ม scanner
-scanner = new Html5QrcodeScanner("reader",{
-  fps:10,
-  qrbox:200,
-  videoConstraints: {
-    facingMode: "environment" // 🔥 บังคับกล้องหลัง
+  // หยุดกล้อง
+  if(scanner){
+    if(scanner.stop){
+      scanner.stop().then(()=>scanner.clear())
+    }else{
+      scanner.clear()
+    }
   }
-})
-scanner.render(onScanSuccess)
 
-function startScanner(){
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  document.getElementById("roomDisplay").innerText = "Room : " + scannedRoom
+  document.getElementById("formSection").style.display = "block"
+}
+
+// ✅ เริ่มระบบ
+function startSystem(){
 
   if(isMobile){
-    // 📱 มือถือ → ใช้กล้องหลัง
-    const html5QrCode = new Html5Qrcode("reader")
-    html5QrCode.start(
-      { facingMode: "environment" }, // 👈 กล้องหลัง
-      { fps: 10, qrbox: 200 },
-      onScanSuccess
-    )
-    scanner = html5QrCode
+
+    // 📱 MOBILE → บังคับกล้องหลัง
+    Html5Qrcode.getCameras().then(devices => {
+
+      let backCamera = devices.find(d =>
+        d.label.toLowerCase().includes("back") ||
+        d.label.toLowerCase().includes("rear")
+      )
+
+      if(!backCamera){
+        backCamera = devices[devices.length - 1]
+      }
+
+      scanner = new Html5Qrcode("reader")
+
+      scanner.start(
+        backCamera.id,
+        { fps:10, qrbox:200 },
+        onScanSuccess
+      )
+    })
+
+    // 🔥 แสดงปุ่ม upload เฉพาะมือถือ
+    document.getElementById("qrFile").style.display = "block"
+
   }else{
-    // 💻 คอม → ใช้แบบเดิม
+
+    // 💻 DESKTOP → ใช้ของเดิม (มี Add File อยู่แล้ว)
     scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:200})
     scanner.render(onScanSuccess)
+
+    document.getElementById("qrFile").style.display = "none"
   }
 }
 
-// เรียกใช้งาน
-startScanner()
+// ✅ อัปโหลดไฟล์ (มือถือ)
+document.getElementById("qrFile").addEventListener("change", function(e){
+
+  const file = e.target.files[0]
+  if(!file) return
+
+  const tempScanner = new Html5Qrcode("reader")
+
+  tempScanner.scanFile(file, true)
+    .then(decodedText=>{
+      onScanSuccess(decodedText)
+    })
+    .catch(()=>{
+      alert("อ่าน QR ไม่สำเร็จ")
+    })
+})
+
+// ✅ check-in
+function checkin(){
+
+  if(!scannedRoom){
+    alert("กรุณาสแกน QR ก่อน")
+    return
+  }
+
+  let studentID = document.getElementById("student_id").value
+  let name = document.getElementById("name").value
+
+  if(!studentID || !name){
+    alert("กรอกข้อมูลก่อน")
+    return
+  }
+
+  let data = {
+    student_id: studentID,
+    name: name,
+    room: scannedRoom
+  }
+
+  fetch(GAS_API_URL,{
+    method:"POST",
+    mode:"no-cors",
+    body:JSON.stringify(data)
+  })
+  .then(()=>{
+    alert("Check-in success")
+  })
+}
+
+// 🚀 เริ่มทำงาน
+startSystem()
 
 </script>
 
