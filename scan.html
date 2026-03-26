@@ -185,6 +185,9 @@ fetch(GAS_API_URL,{
 }
 
 // เริ่ม scanner
+scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:200})
+scanner.render(onScanSuccess)
+
 function startScanner(){
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 
