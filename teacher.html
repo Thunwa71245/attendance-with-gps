@@ -17,12 +17,31 @@
 <a href="index.html" class="back">&larr; Back to Home</a>
 </div>
 <script>
-function generate(){
+const SECRET_KEY = "AttAppGps2026!";
+
+async function generateHash(data) {
+  const msgUint8 = new TextEncoder().encode(data + SECRET_KEY);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
+async function generate(){
   let room = document.getElementById("room").value;
-  let url = location.origin + window.location.pathname.replace('teacher.html', 'scan.html') + "?room=" + encodeURIComponent(room);
+  let timestamp = Date.now();
+  
+  let payloadStr = `${room}|${timestamp}`;
+  let signature = await generateHash(payloadStr);
+  
+  let qrData = JSON.stringify({
+    payload: { room: room, timestamp: timestamp },
+    signature: signature
+  });
+
   document.getElementById("qrcode").innerHTML = "";
   new QRCode(document.getElementById("qrcode"), {
-    text: url, width: 200, height: 200
+    text: qrData, width: 250, height: 250
   });
 }
 // Generate initially
