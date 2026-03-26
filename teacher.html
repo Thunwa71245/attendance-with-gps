@@ -1,51 +1,56 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generate QR</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generate QR</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="teacher-page">
-<div class="container">
-<h2>Room QR Generator</h2>
-<label for="room">Room</label>
-<input id="room" value="1-0308">
-<button onclick="generate()">Generate QR</button>
-<div id="qrcode"></div>
-<a href="index.html" class="back">&larr; Back to Home</a>
-</div>
-<script>
-const SECRET_KEY = "AttAppGps2026!";
+  <div class="container">
+    <h2>Room QR Generator</h2>
+    <label for="room">Room</label>
+    <input id="room" value="1-0308">
+    <button onclick="generate()">Generate QR</button>
+    <div id="qrcode"></div>
+    <a href="index.html" class="back">&larr; Back to Home</a>
+  </div>
+  <script>
+    const SECRET_KEY = "AttAppGps2026!";
 
-async function generateHash(data) {
-  const msgUint8 = new TextEncoder().encode(data + SECRET_KEY);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
-}
+    async function generateHash(data) {
+      const msgUint8 = new TextEncoder().encode(data + SECRET_KEY);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    }
 
-async function generate(){
-  let room = document.getElementById("room").value;
-  let timestamp = Date.now();
-  
-  let payloadStr = `${room}|${timestamp}`;
-  let signature = await generateHash(payloadStr);
-  
-  let qrData = JSON.stringify({
-    payload: { room: room, timestamp: timestamp },
-    signature: signature
-  });
+    async function generate() {
+      let room = document.getElementById("room").value;
+      let timestamp = Date.now().toString();
+      let payloadStr = `${room}|${timestamp}`;
+      let signature = await generateHash(payloadStr);
 
-  document.getElementById("qrcode").innerHTML = "";
-  new QRCode(document.getElementById("qrcode"), {
-    text: qrData, width: 250, height: 250
-  });
-}
-// Generate initially
-window.onload = generate;
-</script>
+      let qrData = {
+        payload: {
+          room: room,
+          timestamp: timestamp
+        },
+        signature: signature
+      };
+
+      document.getElementById("qrcode").innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), {
+        text: JSON.stringify(qrData), width: 250, height: 250
+      });
+    }
+    // Generate initially
+    window.onload = generate;
+  </script>
 </body>
+
 </html>
