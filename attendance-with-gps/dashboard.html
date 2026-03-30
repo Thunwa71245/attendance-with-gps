@@ -5,57 +5,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>แดชบอร์ดการเข้า-ออกงาน | Attendance Dashboard</title>
-
+    
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-
+    
     <!-- Google Fonts -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="dashboard.css">
-
-    <!-- API Configuration -->
-    <script src="api-config.js"></script>
-</head>
-
-<body>
+    </head>
     <!-- Header -->
     <div class="header">
         <div class="header-container">
             <div>
                 <h1>📊 แดชบอร์ดการเข้า-ออกงาน</h1>
-                <div class="header-subtitle">
-                    <span>Attendance Management Dashboard</span>
-                    <span id="apiStatus" class="api-status loading">⚪ กำลังเชื่อมต่อข้อมูล...</span>
-                </div>
+                <div class="header-subtitle">Attendance Management Dashboard</div>
                 <div class="header-date" id="currentDate"></div>
             </div>
-            <!-- Action Buttons -->
+            <!-- Google Sheet Button (World-Class Hidden UI) -->
             <div class="wfh-link-wrapper">
-                <button id="refreshBtn" class="wfh-link-btn" title="รีเฟรชข้อมูล" onclick="refreshData()">
+                <a href="https://docs.google.com/spreadsheets/d/1WXGzRquZso9A3by62DT0ezApDJ-zNi6B-Xz7G-JD2zM/edit?gid=0#gid=0" target="_blank" class="wfh-link-btn" title="ดูข้อมูล WFH">
                     <span class="icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 2.2" />
-                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                     </span>
-                    <span class="text">รีเฟรชข้อมูล</span>
-                </button>
-                <a href="https://docs.google.com/spreadsheets/d/1WXGzRquZso9A3by62DT0ezApDJ-zNi6B-Xz7G-JD2zM/edit?gid=0#gid=0"
-                    target="_blank" class="wfh-link-btn" title="ดูข้อมูล Google Sheets">
-                    <span class="icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
-                        </svg>
-                    </span>
-                    <span class="text">ดูข้อมูล Google Sheet</span>
+                    <span class="text">ดูข้อมูล Google Sheet (WFH)</span>
                 </a>
             </div>
         </div>
@@ -74,7 +47,7 @@
             <div class="month-picker">
                 <button class="month-nav-btn" id="prevMonthBtn" onclick="changeMonth(-1)">← เดือนก่อนหน้า</button>
                 <div class="month-picker-container">
-                    <div class="month-display" id="monthDisplay" onclick="toggleMiniCalendar()">กำลังโหลด... 📅</div>
+                    <div class="month-display" id="monthDisplay" onclick="toggleMiniCalendar()">มีนาคม 2569 📅</div>
                     <div class="mini-calendar" id="miniCalendar">
                         <div class="mini-calendar-header">
                             <button onclick="changeMiniYear(-1)">←</button>
@@ -89,6 +62,7 @@
 
             <!-- Statistics Cards -->
             <div class="stats-grid">
+                <!-- ข้อมูลภาพรวมใหม่ -->
                 <div class="stat-card info">
                     <div class="stat-icon">👥</div>
                     <div class="stat-label">พนักงานทั้งหมด</div>
@@ -103,20 +77,21 @@
                     <div class="stat-description">วัน (ไม่รวมวันหยุด)</div>
                 </div>
 
+                <!-- สถิติการเข้างาน -->
                 <div class="stat-card success" id="onTimeCard" onclick="showStatusFilter('on-time')">
                     <div class="stat-icon">✓</div>
                     <div class="stat-label">มาตรงเวลา</div>
                     <div class="stat-value" id="totalOnTime">0</div>
                     <div class="stat-description">ครั้ง (เดือนนี้)</div>
                 </div>
-
+                
                 <div class="stat-card danger" id="absentCard" onclick="showStatusFilter('absent')">
                     <div class="stat-icon">✕</div>
                     <div class="stat-label">ขาดงาน</div>
                     <div class="stat-value" id="totalAbsent">0</div>
                     <div class="stat-description">ครั้ง (เดือนนี้)</div>
                 </div>
-
+                
                 <div class="stat-card warning" id="lateCard" onclick="showStatusFilter('late')">
                     <div class="stat-icon">⏰</div>
                     <div class="stat-label">มาสาย</div>
@@ -236,28 +211,15 @@
                             <option value="late">⏰ มาสาย</option>
                             <option value="absent">✕ ขาดงาน</option>
                         </select>
-                        <button class="export-btn" onclick="exportToCSV()" title="นำออกข้อมูลที่แสดงเป็นไฟล์ CSV">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                            นำออก (CSV)
-                        </button>
                     </div>
                 </div>
                 <div class="table-wrapper">
                     <table class="main-table">
                         <thead>
                             <tr>
-                                <th>ชื่อ-นามสกุล</th>
-                                <th>รหัสนักศึกษา</th>
-                                <th>ห้อง</th>
+                                <th>ข้อมูลพนักงาน</th>
                                 <th>เวลาเข้า</th>
                                 <th>เวลาออก</th>
-                                <th>เวลาสาย</th>
                                 <th>จำนวนวันมา (เดือนนี้)</th>
                                 <th>สถานะวันนี้</th>
                                 <th>วันที่ลงบันทึก</th>
@@ -265,8 +227,8 @@
                         </thead>
                         <tbody id="attendanceTable">
                             <tr>
-                                <td colspan="9" style="text-align:center; padding: 40px;">
-                                    กำลังโหลดข้อมูล...
+                                <td colspan="6" class="loading">
+                                    <div>กำลังโหลดข้อมูล...</div>
                                 </td>
                             </tr>
                         </tbody>
@@ -279,60 +241,73 @@
     <!-- Detail Modal -->
     <div id="detailModal" class="modal">
         <div class="modal-content column">
+            
+            <!-- Premium Header Modal -->
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 18px;">
                     <div class="modal-avatar" id="modalAvatar">ส</div>
                     <div>
-                        <div style="font-size: 22px; font-weight: 700; letter-spacing: 0.5px;" id="modalTitle">
-                            ชื่อพนักงาน</div>
-                        <div
-                            style="font-size: 14px; opacity: 0.85; margin-top: 3px; display: flex; align-items: center; gap: 8px;">
-                            <span id="modalEmployeeDetails"
-                                style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 20px; font-size: 12px;">รหัส:
-                                - • ห้อง: -</span>
+                        <div style="font-size: 22px; font-weight: 700; letter-spacing: 0.5px;" id="modalTitle">ชื่อพนักงาน</div>
+                        <div style="font-size: 14px; opacity: 0.85; margin-top: 3px; display: flex; align-items: center; gap: 8px;">
+                            <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 20px; font-size: 12px;">พนักงานทั่วไป</span>
                             <span>ประวัติการลงเวลาเข้า-ออกงาน</span>
                         </div>
                     </div>
                 </div>
                 <button class="modal-close" onclick="closeDetail()" title="ปิดหน้าต่าง">✕</button>
             </div>
-
+            
             <div class="modal-body">
-                <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-                    <div class="month-display" id="detailMonthDisplay"
-                        style="padding: 6px 16px; font-size: 16px; min-width: auto; background: var(--bg-color);">มีนาคม
-                        2569 📅</div>
+                <!-- Modal Mini Calendar -->
+                <div class="modal-calendar-container" id="detailCalendarContainer">
+                    <div class="modal-calendar-header">
+                        <button class="modal-month-nav-btn" onclick="changeDetailMonth(-1)">← เดือนก่อนหน้า</button>
+                        <div class="month-picker-container">
+                            <div class="month-display" id="detailMonthDisplay" onclick="toggleDetailMiniCalendar()">มีนาคม 2569 📅</div>
+                            <div class="mini-calendar" id="detailMiniCalendar" style="color: var(--gray-900);">
+                                <div class="mini-calendar-header">
+                                    <button onclick="changeDetailMiniYear(-1)">←</button>
+                                    <span id="detailMiniYearDisplay">2569</span>
+                                    <button onclick="changeDetailMiniYear(1)">→</button>
+                                </div>
+                                <div class="mini-calendar-months" id="detailMiniMonthGrid"></div>
+                            </div>
+                        </div>
+                        <button class="modal-month-nav-btn" onclick="changeDetailMonth(1)">เดือนถัดไป →</button>
+                    </div>
                 </div>
-
+                
+                <!-- Premium Stat Cards -->
                 <div class="modal-stats" id="modalStats">
-                    <!-- จะถูกเติมด้วย JavaScript -->
+                    <!-- จะถูกเติมด้วย JavaScript แบบไล่ระดับสีสวยงาม -->
                 </div>
-
+                
+                <!-- โครงสร้าง Layout มาตรฐานโลกใหม่ (Flexbox) -->
                 <div class="modal-content-flex">
+                    
+                    <!-- กราฟวิเคราะห์ (ด้านซ้าย) -->
                     <div class="modal-chart-wrapper" id="detailChartContainer" style="display: none;">
-                        <h4
-                            style="text-align: center; font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
-                            📊 สัดส่วนการเข้างาน</h4>
+                        <h4 style="text-align: center; font-size: 15px; font-weight: 600; color: var(--gray-800); margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--gray-100);">📊 สัดส่วนการเข้างาน</h4>
                         <div style="position: relative; height: 220px; width: 100%;">
                             <canvas id="detailChart"></canvas>
                         </div>
                     </div>
 
+                    <!-- ตารางข้อมูลด้านขวา พร้อม Smart Filter -->
                     <div class="modal-detail-right">
                         <div class="modal-detail-controls">
-                            <div
-                                style="font-size: 16px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                            <div style="font-size: 16px; font-weight: 600; color: var(--gray-800); display: flex; align-items: center; gap: 8px;">
                                 <span>📋</span> รายการลงเวลา
                             </div>
-                            <select id="detailStatusFilter" class="filter-select" onchange="updateDetailTableOnly()">
+                            <select id="detailStatusFilter" class="filter-select" style="padding: 8px 35px 8px 15px; border-radius: 8px;" onchange="updateDetailTableOnly()">
                                 <option value="">แสดงทั้งหมด</option>
                                 <option value="on-time">✓ เฉพาะมาตรงเวลา</option>
                                 <option value="late">⏰ เฉพาะมาสาย</option>
                                 <option value="absent">✕ เฉพาะขาดงาน</option>
                             </select>
                         </div>
-
-                        <div style="overflow-x: auto;">
+                        
+                        <div class="modal-table-container">
                             <table class="modal-table">
                                 <thead>
                                     <tr>
@@ -346,6 +321,7 @@
                             </table>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -358,27 +334,28 @@
 
     <!-- Scripts -->
     <script>
+        // เปลี่ยนค่าเริ่มต้นเป็น Array ว่าง เพื่อรอรับข้อมูลจริง
         let allAttendanceData = [];
+
         let charts = {};
         let currentMonth = new Date();
         let detailModalMonth = new Date();
         let detailModalEmployeeName = '';
+        let detailModalSelectedDay = null;
         let detailChartInstance = null;
-        let currentEmployeeData = [];
+        let currentEmployeeData = []; // เก็บข้อมูลส่วนตัวของพนักงานรายคน
 
-        // 🎛️ ปิดโหมดข้อมูลจำลอง
-        const USE_MOCK_DATA = false;
-
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
             setupEventListeners();
             setupTabNavigation();
-            initializeDashboard();
         });
 
         function initializeDashboard() {
             updateCurrentDate();
             updateMonthDisplay();
             loadAttendanceData();
+            updateDashboard();
         }
 
         function updateCurrentDate() {
@@ -399,179 +376,33 @@
             updateMonthDisplay();
         }
 
+        function changeDetailMonth(direction) {
+            detailModalMonth.setMonth(detailModalMonth.getMonth() + direction);
+            detailModalSelectedDay = null;
+            updateDetailModal();
+        }
+
         function updateDetailMonthYearDisplay() {
             const options = { month: 'long', year: 'numeric' };
             const monthText = detailModalMonth.toLocaleDateString('th-TH', options);
             document.getElementById('detailMonthDisplay').textContent = monthText + ' 📅';
         }
 
-        function setApiStatus(statusType, text) {
-            const el = document.getElementById('apiStatus');
-            el.className = 'api-status ' + statusType;
-            el.textContent = text;
+        // ฟังก์ชันโหลดข้อมูล (คุณสามารถแก้ไขตรงนี้เพื่อดึงข้อมูลจาก API หรือ Google Sheets ในอนาคต)
+        function loadAttendanceData() {
+            // ปัจจุบันตั้งค่าเป็นข้อมูลว่าง
+            allAttendanceData = []; 
         }
 
-        // =========================================================================
-        // 🔥 HACK METHOD: ใช้เทคนิค JSONP เพื่อดึงข้อมูลตรงจาก Google Sheets 
-        // =========================================================================
-        async function loadAttendanceData() {
-            if (USE_MOCK_DATA) return;
-
-            try {
-                setApiStatus('loading', '⚪ กำลังเชื่อมต่อข้อมูล (JSONP)...');
-
-                // ID ไฟล์ของคุณ: 1WXGzRquZso9A3by62DT0ezApDJ-zNi6B-Xz7G-JD2zM
-                const SHEET_ID = '1WXGzRquZso9A3by62DT0ezApDJ-zNi6B-Xz7G-JD2zM';
-                const SHEET_NAME = 'dashboard';
-                // ใช้เทคนิค responseHandler เพื่อสร้าง JSONP หลีกเลี่ยง CORS
-                const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:handleGVizResponse&sheet=${SHEET_NAME}`;
-
-                await new Promise((resolve, reject) => {
-                    // กำหนดฟังก์ชันรับข้อมูล (Callback) ไว้ที่ระดับ Global ให้ Google เรียกกลับมา
-                    window.handleGVizResponse = function (response) {
-                        try {
-                            if (response.status === 'error') {
-                                // ตรวจจับข้อผิดพลาด ACCESS_DENIED แบบเฉพาะเจาะจง
-                                let errMsg = response.errors[0].message;
-                                if (response.errors[0].reason === 'access_denied' || errMsg.includes('ACCESS_DENIED')) {
-                                    errMsg = 'ACCESS_DENIED';
-                                }
-                                throw new Error(errMsg);
-                            }
-
-                            // ดึงหัวคอลัมน์
-                            const headers = response.table.cols.map(col => col.label || col.id);
-
-                            // จัดรูปข้อมูลให้กลายเป็น Array of Objects
-                            const rawData = response.table.rows.map(row => {
-                                let rowData = {};
-                                row.c.forEach((cell, index) => {
-                                    rowData[headers[index]] = cell ? (cell.f || cell.v || '-') : '-';
-                                });
-                                return rowData;
-                            });
-
-                            // กรองเอาเฉพาะแถวที่มีข้อมูลชื่ออยู่จริง
-                            const validData = rawData.filter(row => row['Name'] || row['name'] || row['ชื่อ']);
-
-                            setApiStatus('success', '🟢 เชื่อมต่อสำเร็จ (ข้อมูลจริง)');
-                            processData(validData);
-                            resolve();
-                        } catch (err) {
-                            reject(err);
-                        } finally {
-                            cleanupJSONP();
-                        }
-                    };
-
-                    // สร้างแท็ก <script> ยิงไปหา Google (วิธีนี้เบราว์เซอร์จะไม่บล็อก CORS)
-                    const script = document.createElement('script');
-                    script.id = 'gviz-jsonp';
-                    script.src = GVIZ_URL;
-                    script.onerror = function () {
-                        cleanupJSONP();
-                        reject(new Error('NETWORK_ERROR'));
-                    };
-                    document.body.appendChild(script);
-
-                    // ฟังก์ชันทำความสะอาดโค้ดหลังโหลดเสร็จ
-                    function cleanupJSONP() {
-                        const s = document.getElementById('gviz-jsonp');
-                        if (s) s.remove();
-                        delete window.handleGVizResponse;
-                    }
-                });
-
-            } catch (err) {
-                const errorMessages = {
-                    'ACCESS_DENIED': '🔒 ไม่มีสิทธิ์เข้าถึงข้อมูล Google Sheet โปรดตรวจสอบการจัดการสิทธิ์การเข้าถึง',
-                    'NETWORK_ERROR': '❌ เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ต',
-                    'timeout': '⏱️ หมดเวลารอการตอบกลับจากเซิร์ฟเวอร์ โปรดลองใหม่ในภายหลัง'
-                };
-
-                let errorMsg = err.message || 'ไม่ทราบข้อผิดพลาด';
-                let errorMessageText = errorMessages[errorMsg] || `❌ เกิดข้อผิดพลาด: ${errorMsg}`;
-
-                setApiStatus('error', '🔴 เชื่อมต่อล้มเหลว');
-                document.getElementById('attendanceTable').innerHTML = `
-                    <tr>
-                        <td colspan="9" style="text-align:center; padding: 40px; color: var(--danger-color); font-weight: 500;">
-                            ${errorMessageText}
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-
-        // ฟังก์ชันจัดการข้อมูล (เหมือนเดิม)
-        function processData(rawData) {
-            if (!Array.isArray(rawData)) return;
-
-            const uniqueDataMap = new Map();
-
-            // ฟังก์ชันช่วยแปลงคำว่า 'ขาด', 'สาย', 'ตรงเวลา' ให้เป็นมาตรฐานระบบ
-            const normalizeStatus = (val) => {
-                if (!val) return 'absent';
-                const s = String(val).toLowerCase().trim();
-                if (s === 'on-time' || s.includes('ตรงเวลา') || s.includes('ปกติ')) return 'on-time';
-                if (s === 'late' || s.includes('สาย')) return 'late';
-                if (s === 'absent' || s.includes('ขาด') || s.includes('ลา')) return 'absent';
-                return 'absent'; // หากคำไม่ตรงเงื่อนไขเลยให้ถือว่าขาดงาน
-            };
-
-            rawData.forEach(row => {
-                const name = row['Name'] || row['name'] || row['ชื่อ'] || 'ไม่ระบุชื่อ';
-                const date = row['Date'] || row['date'] || row['วันที่'] || '-';
-                const studentId = row['StudentID'] || row['studentId'] || '-';
-                const room = row['Room'] || row['room'] || '-';
-                const lateTime = row['LateTime'] || row['latetime'] || row['เวลาสาย'] || '-';
-                const rawStatus = row['Status'] || row['status'] || row['สถานะ'] || '';
-
-                const key = `${name}-${date}`;
-
-                if (!uniqueDataMap.has(key)) {
-                    uniqueDataMap.set(key, {
-                        name: name,
-                        date: date,
-                        studentId: studentId,
-                        room: room,
-                        lateTime: lateTime,
-                        entryTime: row['CheckIn'] || row['checkin'] || row['เวลาเข้า'] || '-',
-                        exitTime: row['CheckOut'] || row['checkout'] || row['เวลาออก'] || '-',
-                        status: normalizeStatus(rawStatus), // ส่งเข้าฟังก์ชันแปลงคำ
-                        attendanceDays: 1
-                    });
-                } else {
-                    const existing = uniqueDataMap.get(key);
-                    const newTime = row['CheckOut'] !== '-' ? row['CheckOut'] : row['CheckIn'];
-                    if (newTime && newTime !== '-') {
-                        existing.exitTime = newTime;
-                    }
-                }
-            });
-
-            allAttendanceData = Array.from(uniqueDataMap.values());
-            calculateAttendanceDays();
-            updateDashboard();
-        }
-
-        function calculateAttendanceDays() {
-            const monthMap = {};
-
-            allAttendanceData.forEach(record => {
-                const key = `${record.name}-${record.date.split('/').slice(1).join('/')}`;
-                if (!monthMap[key]) monthMap[key] = 0;
-                if (record.status !== 'absent') monthMap[key]++;
-            });
-
-            allAttendanceData.forEach(record => {
-                const key = `${record.name}-${record.date.split('/').slice(1).join('/')}`;
-                record.attendanceDays = monthMap[key] || 1;
-            });
+        function dateToString(date) {
+            const d = new Date(date);
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
         }
 
         function updateDashboard() {
-            if (!allAttendanceData || allAttendanceData.length === 0) return;
             updateStatistics();
             updateStatusLists();
             updateAttendanceRates();
@@ -590,24 +421,29 @@
             const onTime = monthRecords.filter(r => r.status === 'on-time').length;
             const absent = monthRecords.filter(r => r.status === 'absent').length;
             const late = monthRecords.filter(r => r.status === 'late').length;
-
+            
             document.getElementById('totalOnTime').textContent = onTime;
             document.getElementById('totalAbsent').textContent = absent;
             document.getElementById('totalLate').textContent = late;
 
+            // คำนวณจำนวนพนักงานทั้งหมดแบบไม่ซ้ำกัน
             const uniqueEmployees = new Set(allAttendanceData.map(r => r.name)).size;
             document.getElementById('totalEmployees').textContent = uniqueEmployees;
 
+            // คำนวณวันทำงานในเดือนนั้นๆ (ไม่รวมเสาร์-อาทิตย์)
             const workingDays = getWorkingDaysInMonth(currentMonth.getFullYear(), currentMonth.getMonth());
             document.getElementById('totalWorkingDays').textContent = workingDays;
         }
 
+        // ฟังก์ชันช่วยคำนวณจำนวนวันทำการในแต่ละเดือน
         function getWorkingDaysInMonth(year, month) {
             let count = 0;
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             for (let i = 1; i <= daysInMonth; i++) {
                 const d = new Date(year, month, i);
-                if (d.getDay() !== 0 && d.getDay() !== 6) count++;
+                if (d.getDay() !== 0 && d.getDay() !== 6) { // 0 = อาทิตย์, 6 = เสาร์
+                    count++;
+                }
             }
             return count;
         }
@@ -617,17 +453,17 @@
             const absentPeople = new Set();
             const onTimePeople = new Set();
             const latePeople = new Set();
-
+            
             monthRecords.forEach(record => {
                 if (record.status === 'absent') absentPeople.add(record.name);
                 else if (record.status === 'on-time') onTimePeople.add(record.name);
                 else if (record.status === 'late') latePeople.add(record.name);
             });
-
+            
             document.getElementById('absentCount').textContent = absentPeople.size;
             document.getElementById('ontimeCount').textContent = onTimePeople.size;
             document.getElementById('lateCount').textContent = latePeople.size;
-
+            
             updateListItems('#absentList', Array.from(absentPeople).sort(), 'absent');
             updateListItems('#ontimeList', Array.from(onTimePeople).sort(), 'on-time');
             updateListItems('#lateList', Array.from(latePeople).sort(), 'late');
@@ -636,10 +472,13 @@
         function updateListItems(selector, names, defaultFilter) {
             const list = document.querySelector(selector);
             if (names.length > 0) {
-                list.innerHTML = names.map(name => `
-                    <div class="list-item" onclick="showDetail('${name}', '${defaultFilter}')">
-                        <div class="list-item-name">${name}</div>
-                    </div>`).join('');
+                list.innerHTML = names.map(name => {
+                    return `<div class="list-item" onclick="showDetail('${name}', '${defaultFilter}')">
+                        <div>
+                            <div class="list-item-name">${name}</div>
+                        </div>
+                    </div>`;
+                }).join('');
             } else {
                 list.innerHTML = '<div class="empty-list">ไม่มีข้อมูล</div>';
             }
@@ -647,37 +486,32 @@
 
         function showDetail(employeeName, defaultFilter = '') {
             detailModalEmployeeName = employeeName;
-            detailModalMonth = new Date(currentMonth); // ใช้เดือนปัจจุบันที่กำลังดูอยู่เป็นค่าเริ่มต้นใน Modal
-
+            detailModalMonth = new Date();
+            detailModalSelectedDay = null;
+            
             const filterSelect = document.getElementById('detailStatusFilter');
             if (filterSelect) filterSelect.value = defaultFilter;
-
+            
             updateDetailModal();
         }
 
         function updateDetailModal() {
             currentEmployeeData = allAttendanceData
                 .filter(record => record.name === detailModalEmployeeName && isDateInMonth(record.date, detailModalMonth));
-            currentEmployeeData.sort((a, b) => new Date(b.date.split('/').reverse().join('-')) - new Date(a.date.split('/').reverse().join('-')));
 
+            currentEmployeeData.sort((a, b) => new Date(b.date.split('/').reverse().join('-')) - new Date(a.date.split('/').reverse().join('-')));
+            
             const onTime = currentEmployeeData.filter(r => r.status === 'on-time').length;
             const late = currentEmployeeData.filter(r => r.status === 'late').length;
             const absent = currentEmployeeData.filter(r => r.status === 'absent').length;
-
+            
             updateDetailMonthYearDisplay();
-
-            // ดึงข้อมูลรหัสและห้องจาก Record ล่าสุดมาแสดงใน Modal
-            let displayId = '-';
-            let displayRoom = '-';
-            if (currentEmployeeData.length > 0) {
-                displayId = currentEmployeeData[0].studentId;
-                displayRoom = currentEmployeeData[0].room;
-            }
-
+            
+            // อัปเดต Profile Header ใน Modal
             document.getElementById('modalAvatar').textContent = detailModalEmployeeName.charAt(0);
             document.getElementById('modalTitle').textContent = detailModalEmployeeName;
-            document.getElementById('modalEmployeeDetails').textContent = `รหัส: ${displayId} • ห้อง: ${displayRoom}`;
-
+            
+            // อัปเดตกล่องตัวเลขสถิติแบบพรีเมียม (Premium Stat Cards)
             document.getElementById('modalStats').innerHTML = `
                 <div class="modal-stat-item" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-left: 4px solid #10b981;">
                     <div style="font-size: 24px; margin-bottom: 8px;">✅</div>
@@ -695,29 +529,46 @@
                     <div class="modal-stat-value" style="color: #7f1d1d;">${absent}</div>
                 </div>
             `;
-
+            
             renderDetailChart(onTime, late, absent);
-            updateDetailTableOnly();
+            updateDetailTableOnly(); // ดึงข้อมูลใส่ตารางพร้อมเช็คตัวกรอง
+            
             document.getElementById('detailModal').classList.add('active');
         }
 
+        // ฟังก์ชันวาดตารางฝั่งขวาของ Modal (ทำงานร่วมกับตัวกรอง)
         function updateDetailTableOnly() {
             const filterVal = document.getElementById('detailStatusFilter').value;
             let tableData = filterVal ? currentEmployeeData.filter(r => r.status === filterVal) : currentEmployeeData;
+            
             const tbody = document.getElementById('modalTableBody');
-
+            
             if (tableData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 40px; color: var(--text-muted);">ไม่มีประวัติในหมวดหมู่นี้</td></tr>`;
+                tbody.innerHTML = `
+                <tr>
+                    <td colspan="4">
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px;">
+                            <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;">📭</div>
+                            <div style="color: var(--gray-900); font-weight: 600; font-size: 15px;">ไม่มีประวัติในหมวดหมู่นี้</div>
+                            <div style="color: var(--gray-500); font-size: 13px; margin-top: 5px;">พนักงานคนนี้ไม่มีข้อมูลในเดือนหรือสถานะที่คุณเลือก</div>
+                        </div>
+                    </td>
+                </tr>`;
                 return;
             }
 
             tbody.innerHTML = tableData.map(record => `
                 <tr>
                     <td style="font-weight: 500;">${record.date}</td>
-                    <td>${record.entryTime}</td>
-                    <td>${record.exitTime}</td>
-                    <td><span class="status-badge badge-${record.status}">${getStatusLabel(record.status)}</span></td>
-                </tr>`).join('');
+                    <td style="color: ${record.entryTime === '-' ? 'var(--gray-400)' : 'inherit'};">${record.entryTime}</td>
+                    <td style="color: ${record.exitTime === '-' ? 'var(--gray-400)' : 'inherit'};">${record.exitTime}</td>
+                    <td>
+                        <span class="status-badge badge-${record.status === 'on-time' ? 'on-time' : record.status === 'late' ? 'late' : 'absent'}">
+                            ${getStatusLabel(record.status)}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
         }
 
         function renderDetailChart(onTime, late, absent) {
@@ -728,19 +579,28 @@
             }
             container.style.display = 'block';
             const ctx = document.getElementById('detailChart').getContext('2d');
-
+            
             if (detailChartInstance) detailChartInstance.destroy();
+            
             detailChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['มาตรงเวลา', 'มาสาย', 'ขาดงาน'],
                     datasets: [{
                         data: [onTime, late, absent],
-                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-                        borderWidth: 2
+                        backgroundColor: ['rgba(16, 185, 129, 0.85)', 'rgba(245, 158, 11, 0.85)', 'rgba(239, 68, 68, 0.85)'],
+                        borderColor: ['#ffffff', '#ffffff', '#ffffff'],
+                        borderWidth: 3
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { font: { family: "'Prompt', 'Poppins', sans-serif" }, padding: 20 } } 
+                    }
+                }
             });
         }
 
@@ -757,120 +617,88 @@
         function updateAttendanceRates() {
             const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
             const totalRecords = monthRecords.length || 1;
-
+            
             const onTimeCount = monthRecords.filter(r => r.status === 'on-time').length;
             const lateCount = monthRecords.filter(r => r.status === 'late').length;
             const absentCount = monthRecords.filter(r => r.status === 'absent').length;
             const presentCount = onTimeCount + lateCount;
-
+            
             const avgAttendanceRate = (presentCount / totalRecords) * 100;
             document.getElementById('avgAttendancePercent').textContent = Math.round(avgAttendanceRate) + '%';
             document.getElementById('avgAttendanceBar').style.width = avgAttendanceRate + '%';
-
-            const onTimeRate = presentCount ? (onTimeCount / presentCount) * 100 : 0;
+            
+            const onTimeRate = (onTimeCount / presentCount) * 100 || 0;
             document.getElementById('onTimePercent').textContent = Math.round(onTimeRate) + '%';
             document.getElementById('onTimeBar').style.width = onTimeRate + '%';
-
-            const lateRate = presentCount ? (lateCount / presentCount) * 100 : 0;
+            
+            const lateRate = (lateCount / presentCount) * 100 || 0;
             document.getElementById('latePercent').textContent = Math.round(lateRate) + '%';
             document.getElementById('lateBar').style.width = lateRate + '%';
-
+            
             const absentRate = (absentCount / totalRecords) * 100;
             document.getElementById('absentPercent').textContent = Math.round(absentRate) + '%';
             document.getElementById('absentBar').style.width = absentRate + '%';
         }
 
         function updateTable() {
+            document.querySelector('.table-title').textContent = '📋 รายชื่อการเข้า-ออกงาน';
+
             const tbody = document.getElementById('attendanceTable');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('statusFilter').value;
-
+            
             let monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
 
             let filtered = monthRecords.filter(record => {
-                const matchesSearch = record.name.toLowerCase().includes(searchTerm) || (record.studentId && record.studentId.includes(searchTerm));
+                const matchesSearch = record.name.toLowerCase().includes(searchTerm);
                 const matchesStatus = !statusFilter || record.status === statusFilter;
                 return matchesSearch && matchesStatus;
             });
-
+            
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">ไม่พบข้อมูลที่ค้นหา</td></tr>`;
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 50px 20px;">
+                                <div style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;">📭</div>
+                                <div style="color: var(--gray-900); font-weight: 600; font-size: 16px; margin-bottom: 5px;">ไม่พบข้อมูล</div>
+                                <div style="color: var(--gray-500); font-size: 14px;">ไม่มีรายการที่ตรงกับเงื่อนไขการค้นหาของคุณในขณะนี้</div>
+                            </div>
+                        </td>
+                    </tr>`;
                 return;
             }
-
+            
             filtered.sort((a, b) => new Date(b.date.split('/').reverse().join('-')) - new Date(a.date.split('/').reverse().join('-')));
-
+            
             tbody.innerHTML = filtered.map(record => `
                 <tr onclick="showDetail('${record.name}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเชิงลึก">
                     <td>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 38px; height: 38px; border-radius: 50%; background: #eff6ff; color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                            <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0;">
                                 ${record.name.charAt(0)}
                             </div>
-                            <div>
-                                <strong style="color: var(--text-main); font-weight: 600;">${record.name}</strong>
+                            <div style="display: flex; flex-direction: column;">
+                                <strong style="color: var(--gray-900); font-weight: 600; font-size: 14px;">${record.name}</strong>
+                                <span style="font-size: 12px; color: var(--gray-500); margin-top: 2px;">พนักงานทั่วไป</span>
                             </div>
                         </div>
                     </td>
-                    <td style="color: var(--text-muted); font-weight: 500;">${record.studentId}</td>
-                    <td style="color: var(--text-muted);">${record.room}</td>
-                    <td style="font-weight: 500;">${record.entryTime}</td>
-                    <td style="font-weight: 500;">${record.exitTime}</td>
-                    <td style="color: ${record.lateTime !== '-' ? 'var(--danger-color)' : 'var(--text-muted)'}; font-size: 13px; font-weight: 500;">${record.lateTime}</td>
-                    <td><div style="background: #f8fafc; padding: 4px 12px; border-radius: 6px; display: inline-block;">${record.attendanceDays} วัน</div></td>
-                    <td><span class="status-badge badge-${record.status}">${getStatusLabel(record.status)}</span></td>
-                    <td style="color: var(--text-muted);">${record.date}</td>
-                </tr>`).join('');
-        }
-
-        function exportToCSV() {
-            if (!allAttendanceData || allAttendanceData.length === 0) {
-                showNotification('ไม่มีข้อมูลสำหรับนำออก', 'warning');
-                return;
-            }
-
-            // เพิ่ม BOM (Byte Order Mark) เพื่อให้เปิดใน Excel แล้วอ่านภาษาไทยได้ถูกต้อง
-            let csvContent = "\uFEFF";
-            csvContent += "วันที่,รหัสนักศึกษา,ชื่อ-นามสกุล,ห้อง,เวลาเข้า,เวลาออก,เวลาสาย,สถานะ\n";
-
-            // ดึงข้อมูลตามที่กำลังแสดงในตาราง (กรองเดือนและเงื่อนไขการค้นหา)
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            let monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
-
-            let filtered = monthRecords.filter(record => {
-                const matchesSearch = record.name.toLowerCase().includes(searchTerm) || (record.studentId && record.studentId.includes(searchTerm));
-                const matchesStatus = !statusFilter || record.status === statusFilter;
-                return matchesSearch && matchesStatus;
-            });
-
-            // เรียงวันที่จากเก่าไปใหม่
-            filtered.sort((a, b) => new Date(a.date.split('/').reverse().join('-')) - new Date(b.date.split('/').reverse().join('-')));
-
-            filtered.forEach(record => {
-                // แปลงคำสถานะให้ดูง่ายขึ้น
-                let statusTh = getStatusLabel(record.status).replace('✓ ', '').replace('⏰ ', '').replace('✕ ', '');
-
-                // ใช้ " ครอบเผื่อมีลูกน้ำในข้อมูล
-                let row = `"${record.date}","${record.studentId}","${record.name}","${record.room}","${record.entryTime}","${record.exitTime}","${record.lateTime}","${statusTh}"`;
-                csvContent += row + "\n";
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-
-            // ตั้งชื่อไฟล์ตามเดือนที่กำลังเปิดดูอยู่
-            const monthText = currentMonth.toLocaleDateString('th-TH', { month: 'short', year: 'numeric' }).replace(/\s/g, '_');
-            link.setAttribute("download", `รายงานการเข้างาน_${monthText}.csv`);
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            showNotification('✓ นำออกไฟล์ CSV สำเร็จ', 'success');
+                    <td><span style="font-weight: 500; font-size: 15px; color: ${record.entryTime === '-' ? 'var(--gray-400)' : 'var(--gray-700)'};">${record.entryTime}</span></td>
+                    <td><span style="font-weight: 500; font-size: 15px; color: ${record.exitTime === '-' ? 'var(--gray-400)' : 'var(--gray-700)'};">${record.exitTime}</span></td>
+                    <td>
+                        <div style="background: #f8fafc; border: 1px solid var(--gray-200); border-radius: 6px; padding: 4px 12px; display: inline-block; font-weight: 600; font-size: 13px; color: var(--gray-700);">
+                            ${record.attendanceDays} วัน
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge badge-${record.status === 'on-time' ? 'on-time' : record.status === 'late' ? 'late' : 'absent'}">
+                            ${getStatusLabel(record.status)}
+                        </span>
+                    </td>
+                    <td style="color: var(--gray-500); font-size: 13px; font-weight: 500;">${record.date}</td>
+                </tr>
+            `).join('');
         }
 
         function getStatusLabel(status) {
@@ -879,72 +707,92 @@
         }
 
         function updateCharts() {
+            updateAttendanceChart(); updateAverageTimeChart(); updateStatusChart(); updateLateChart();
+        }
+
+        function updateAttendanceChart() {
             const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
             const nameGroups = {};
-            const avgTimeGroups = {};
-            let onTime = 0, late = 0, absent = 0;
-
             monthRecords.forEach(record => {
-                // นับวันทำงาน
                 if (!nameGroups[record.name]) nameGroups[record.name] = 0;
                 if (record.status !== 'absent') nameGroups[record.name]++;
-
-                // นับเวลาเฉลี่ย
-                if (record.status !== 'absent' && record.entryTime !== '-') {
-                    if (!avgTimeGroups[record.name]) avgTimeGroups[record.name] = { sum: 0, count: 0 };
-                    const [hours, minutes] = record.entryTime.split(':').map(Number);
-                    avgTimeGroups[record.name].sum += hours + (minutes / 60);
-                    avgTimeGroups[record.name].count++;
-                }
-
-                // นับสัดส่วน
-                if (record.status === 'on-time') onTime++;
-                if (record.status === 'late') late++;
-                if (record.status === 'absent') absent++;
             });
-
-            // Attendance Bar Chart
-            const ctx1 = document.getElementById('attendanceChart').getContext('2d');
+            
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
             if (charts.attendance) charts.attendance.destroy();
-            charts.attendance = new Chart(ctx1, {
+            charts.attendance = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: Object.keys(nameGroups), datasets: [{ label: 'จำนวนวัน', data: Object.values(nameGroups), backgroundColor: '#10b981', borderRadius: 6 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                data: {
+                    labels: Object.keys(nameGroups),
+                    datasets: [{ label: 'จำนวนวัน', data: Object.values(nameGroups), backgroundColor: 'rgba(16, 185, 129, 0.7)', borderColor: 'rgba(16, 185, 129, 1)', borderWidth: 2, borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
             });
+        }
 
-            // Average Time Line Chart
+        function updateAverageTimeChart() {
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            const nameGroups = {};
+            monthRecords.forEach(record => {
+                if (record.status !== 'absent') {
+                    if (!nameGroups[record.name]) nameGroups[record.name] = { sum: 0, count: 0 };
+                    const [hours, minutes] = record.entryTime.split(':').map(Number);
+                    nameGroups[record.name].sum += hours + (minutes / 60);
+                    nameGroups[record.name].count++;
+                }
+            });
             const averages = {};
-            Object.keys(avgTimeGroups).forEach(name => { averages[name] = avgTimeGroups[name].sum / avgTimeGroups[name].count; });
-            const ctx2 = document.getElementById('averageTimeChart').getContext('2d');
+            Object.keys(nameGroups).forEach(name => { averages[name] = Math.round(nameGroups[name].sum / nameGroups[name].count * 100) / 100; });
+            
+            const ctx = document.getElementById('averageTimeChart').getContext('2d');
             if (charts.averageTime) charts.averageTime.destroy();
-            charts.averageTime = new Chart(ctx2, {
+            charts.averageTime = new Chart(ctx, {
                 type: 'line',
-                data: { labels: Object.keys(averages), datasets: [{ label: 'เวลา (ชม)', data: Object.values(averages), borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 6, max: 10 } } }
+                data: {
+                    labels: Object.keys(averages),
+                    datasets: [{ label: 'เวลา (ชม)', data: Object.values(averages), borderColor: 'rgba(37, 99, 235, 1)', backgroundColor: 'rgba(37, 99, 235, 0.1)', borderWidth: 3, fill: true, tension: 0.4, pointRadius: 5 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, min: 6, max: 10 }, x: { grid: { display: false } } } }
             });
+        }
 
-            // Status Doughnut Chart
-            const ctx3 = document.getElementById('statusChart').getContext('2d');
+        function updateStatusChart() {
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            const present = monthRecords.filter(r => r.status !== 'absent').length;
+            const absent = monthRecords.filter(r => r.status === 'absent').length;
+            
+            const ctx = document.getElementById('statusChart').getContext('2d');
             if (charts.status) charts.status.destroy();
-            charts.status = new Chart(ctx3, {
+            charts.status = new Chart(ctx, {
                 type: 'doughnut',
-                data: { labels: ['มาทำงาน', 'ขาด'], datasets: [{ data: [onTime + late, absent], backgroundColor: ['#10b981', '#ef4444'] }] },
+                data: {
+                    labels: ['มาทำงาน', 'ขาด'],
+                    datasets: [{ data: [present, absent], backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(239, 68, 68, 0.8)'], borderColor: ['rgba(16, 185, 129, 1)', 'rgba(239, 68, 68, 1)'], borderWidth: 2 }]
+                },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
             });
+        }
 
-            // Late Doughnut Chart
-            const ctx4 = document.getElementById('lateChart').getContext('2d');
+        function updateLateChart() {
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            const onTime = monthRecords.filter(r => r.status === 'on-time').length;
+            const late = monthRecords.filter(r => r.status === 'late').length;
+            
+            const ctx = document.getElementById('lateChart').getContext('2d');
             if (charts.late) charts.late.destroy();
-            charts.late = new Chart(ctx4, {
+            charts.late = new Chart(ctx, {
                 type: 'doughnut',
-                data: { labels: ['ตรงเวลา', 'สาย'], datasets: [{ data: [onTime, late], backgroundColor: ['#10b981', '#f59e0b'] }] },
+                data: {
+                    labels: ['ตรงเวลา', 'สาย'],
+                    datasets: [{ data: [onTime, late], backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)'], borderColor: ['rgba(16, 185, 129, 1)', 'rgba(245, 158, 11, 1)'], borderWidth: 2 }]
+                },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
             });
         }
 
         function setupTabNavigation() {
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
+                btn.addEventListener('click', function() {
                     const tabName = this.dataset.tab;
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -955,53 +803,59 @@
         }
 
         function showStatusFilter(type) {
+            const tbody = document.getElementById('attendanceTable');
+            const monthRecords = allAttendanceData.filter(r => isDateInCurrentMonth(r.date));
+            let title = '📋 รายชื่อการเข้า-ออกงาน';
+
             document.getElementById('searchInput').value = '';
-            document.getElementById('statusFilter').value = type;
-            updateTable();
+            document.getElementById('statusFilter').value = '';
+
+            if (type === 'absent') {
+                const uniqueNames = new Set();
+                monthRecords.filter(r => r.status === 'absent').forEach(r => uniqueNames.add(r.name));
+                const filtered = Array.from(uniqueNames).sort();
+                title = '✕ ขาดงาน (ในเดือนนั้น)';
+                
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">ไม่มีข้อมูล</td></tr>';
+                    document.querySelector('.table-title').textContent = title;
+                    return;
+                }
+                tbody.innerHTML = filtered.map((name, idx) => `<tr><td><strong>${idx + 1}. ${name}</strong></td><td colspan="5"></td></tr>`).join('');
+            } else if (type === 'on-time') {
+                const uniqueNames = new Set();
+                monthRecords.filter(r => r.status === 'on-time').forEach(r => uniqueNames.add(r.name));
+                const filtered = Array.from(uniqueNames).sort();
+                title = '✓ มาตรงเวลา (ในเดือนนั้น)';
+                
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">ไม่มีข้อมูล</td></tr>';
+                    document.querySelector('.table-title').textContent = title;
+                    return;
+                }
+                tbody.innerHTML = filtered.map((name, idx) => `<tr><td><strong>${idx + 1}. ${name}</strong></td><td colspan="5"></td></tr>`).join('');
+            } else if (type === 'late') {
+                const uniqueNames = new Set();
+                monthRecords.filter(r => r.status === 'late').forEach(r => uniqueNames.add(r.name));
+                const filtered = Array.from(uniqueNames).sort();
+                title = '⏰ มาสาย (ในเดือนนั้น)';
+                
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">ไม่มีข้อมูล</td></tr>';
+                    document.querySelector('.table-title').textContent = title;
+                    return;
+                }
+                tbody.innerHTML = filtered.map((name, idx) => `<tr><td><strong>${idx + 1}. ${name}</strong></td><td colspan="5"></td></tr>`).join('');
+            }
+            document.querySelector('.table-title').textContent = title;
         }
 
         function setupEventListeners() {
             document.getElementById('searchInput').addEventListener('input', updateTable);
             document.getElementById('statusFilter').addEventListener('change', updateTable);
-            document.getElementById('detailModal').addEventListener('click', function (e) {
+            document.getElementById('detailModal').addEventListener('click', function(e) {
                 if (e.target === this) closeDetail();
             });
-        }
-
-        async function refreshData() {
-            const refreshBtn = document.getElementById('refreshBtn');
-            if (refreshBtn) {
-                refreshBtn.style.opacity = '0.5';
-                refreshBtn.style.pointerEvents = 'none';
-                const svg = refreshBtn.querySelector('.icon svg');
-                if (svg) svg.style.animation = 'spin 1s linear infinite';
-            }
-
-            await loadAttendanceData();
-
-            if (refreshBtn) {
-                refreshBtn.style.opacity = '1';
-                refreshBtn.style.pointerEvents = 'auto';
-                const svg = refreshBtn.querySelector('.icon svg');
-                if (svg) svg.style.animation = 'none';
-                showNotification('✓ รีเฟรชข้อมูลสำเร็จ', 'success');
-            }
-        }
-
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed; top: 20px; right: 20px;
-                background: ${type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
-                color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
-                z-index: 9999; opacity: 0; animation: slideIn 0.3s ease-out forwards;
-            `;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease-out forwards';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
         }
 
         // --- Mini Calendar Functions ---
@@ -1010,7 +864,7 @@
         function toggleMiniCalendar() {
             const cal = document.getElementById('miniCalendar');
             cal.classList.toggle('active');
-            if (cal.classList.contains('active')) {
+            if(cal.classList.contains('active')) {
                 miniCalendarYear = currentMonth.getFullYear();
                 renderMiniCalendar();
             }
@@ -1038,14 +892,53 @@
             document.getElementById('miniCalendar').classList.remove('active');
         }
 
-        document.addEventListener('click', function (e) {
+        // --- Detail Mini Calendar Functions ---
+        let detailMiniCalendarYear = detailModalMonth.getFullYear();
+
+        function toggleDetailMiniCalendar() {
+            const cal = document.getElementById('detailMiniCalendar');
+            cal.classList.toggle('active');
+            if(cal.classList.contains('active')) {
+                detailMiniCalendarYear = detailModalMonth.getFullYear();
+                renderDetailMiniCalendar();
+            }
+        }
+
+        function changeDetailMiniYear(dir) {
+            detailMiniCalendarYear += dir;
+            renderDetailMiniCalendar();
+        }
+
+        function renderDetailMiniCalendar() {
+            document.getElementById('detailMiniYearDisplay').textContent = detailMiniCalendarYear + 543;
+            const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            const grid = document.getElementById('detailMiniMonthGrid');
+            grid.innerHTML = monthNames.map((m, i) => {
+                const isActive = (i === detailModalMonth.getMonth() && detailMiniCalendarYear === detailModalMonth.getFullYear());
+                return `<button class="mini-month-btn ${isActive ? 'active' : ''}" onclick="selectDetailMiniMonth(${i})">${m}</button>`;
+            }).join('');
+        }
+
+        function selectDetailMiniMonth(monthIndex) {
+            detailModalMonth.setFullYear(detailMiniCalendarYear);
+            detailModalMonth.setMonth(monthIndex);
+            updateDetailMonthYearDisplay();
+            updateDetailModal();
+            document.getElementById('detailMiniCalendar').classList.remove('active');
+        }
+
+        document.addEventListener('click', function(e) {
             const mainDisplay = document.getElementById('monthDisplay');
             const mainCal = document.getElementById('miniCalendar');
             if (mainCal && mainCal.classList.contains('active') && e.target !== mainDisplay && !mainCal.contains(e.target)) {
                 mainCal.classList.remove('active');
             }
+            const detailDisplay = document.getElementById('detailMonthDisplay');
+            const detailCal = document.getElementById('detailMiniCalendar');
+            if (detailCal && detailCal.classList.contains('active') && e.target !== detailDisplay && !detailCal.contains(e.target)) {
+                detailCal.classList.remove('active');
+            }
         });
     </script>
 </body>
-
-</html> 
+</html>

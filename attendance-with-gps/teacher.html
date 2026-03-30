@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Generate QR</title>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+</head>
+
+<body>
+
+<h2>Room QR Generator</h2>
+
+Room
+
+<input id="room" value="1-0308">
+
+<br><br>
+
+<button onclick="generate()">Generate QR</button>
+
+<br><br>
+
+<div id="qrcode"></div>
+
+<script>
+
+function generate(){
+
+let room=document.getElementById("room").value
+
+let url=location.origin+"/scan.html?room="+room
+
+document.getElementById("qrcode").innerHTML=""
+
+new QRCode(document.getElementById("qrcode"),url)
+
+}
+
+</script>
+
+</body>
+
+</html>
