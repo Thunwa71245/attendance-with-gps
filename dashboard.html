@@ -16,6 +16,9 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="dashboard.css">
+
+    <!-- API Configuration -->
+    <script src="api-config.js"></script>
 </head>
 
 <body>
@@ -480,11 +483,20 @@
                 });
 
             } catch (err) {
+                const errorMessages = {
+                    'ACCESS_DENIED': '🔒 ไม่มีสิทธิ์เข้าถึงข้อมูล Google Sheet โปรดตรวจสอบการจัดการสิทธิ์การเข้าถึง',
+                    'NETWORK_ERROR': '❌ เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ต',
+                    'timeout': '⏱️ หมดเวลารอการตอบกลับจากเซิร์ฟเวอร์ โปรดลองใหม่ในภายหลัง'
+                };
 
+                let errorMsg = err.message || 'ไม่ทราบข้อผิดพลาด';
+                let errorMessageText = errorMessages[errorMsg] || `❌ เกิดข้อผิดพลาด: ${errorMsg}`;
+
+                setApiStatus('error', '🔴 เชื่อมต่อล้มเหลว');
                 document.getElementById('attendanceTable').innerHTML = `
                     <tr>
                         <td colspan="9" style="text-align:center; padding: 40px; color: var(--danger-color); font-weight: 500;">
-                            ${errorHTML}
+                            ${errorMessageText}
                         </td>
                     </tr>
                 `;
