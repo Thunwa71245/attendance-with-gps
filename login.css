@@ -1,0 +1,191 @@
+body {
+    font-family: Arial;
+    background: #0f172a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* container */
+.wrapper {
+    width: 350px;
+}
+
+/* ===== Tabs ===== */
+.tabs {
+    display: flex;
+    width: 100%;
+}
+
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 12px 12px 0 0;
+    background: #cbd5c0;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* active */
+.active-user {
+    background: #dcefd8;
+}
+
+.active-admin {
+    background: #a7d7a0;
+}
+
+/* ===== Card ===== */
+.card {
+    background: #f4f6f3;
+    padding: 20px;
+    border-radius: 0 0 15px 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* title */
+.title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #1b5e20;
+    margin-bottom: 15px;
+}
+
+/* form */
+.form-box {
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.user-bg {
+    background: #e8f5e9;
+}
+
+.admin-bg {
+    background: #c8e6c9;
+}
+
+input {
+    width: 90%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #aaa;
+}
+
+/* button */
+.btn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    background: #2e7d32;
+    color: white;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: #1b5e20;
+}
+
+.hidden {
+    display: none;
+}
+
+/* ===== SweetAlert2 Customization ===== */
+:root {
+    --swal2-backdrop: rgba(15, 23, 42, 0.5);
+}
+
+.swal2-popup {
+    background: linear-gradient(135deg, #f4f6f3 0%, #e8f5e9 100%);
+    border: 2px solid #2e7d32;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: popupBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    min-width: 50px !important;
+    max-width: 500px !important;
+    width: 70% !important;
+    padding: 30px !important;
+}
+
+.swal2-title {
+    color: #1b5e20 !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    margin-bottom: 15px !important;
+}
+
+.swal2-html-container {
+    color: #2e7d32 !important;
+    font-size: 16px !important;
+}
+
+.swal2-confirm {
+    background-color: #2e7d32 !important;
+    border-radius: 10px !important;
+    padding: 10px 30px !important;
+    font-weight: bold !important;
+    transition: all 0.3s ease !important;
+    display: inline-block !important;
+}
+
+.swal2-actions {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    padding: 15px 0 !important;
+}
+
+.swal2-confirm:hover {
+    background-color: #1b5e20 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 15px rgba(46, 125, 50, 0.4) !important;
+}
+
+.swal2-icon {
+    border-color: #2e7d32 !important;
+}
+
+.swal2-icon.swal2-error {
+    border-color: #c62828 !important;
+    color: #c62828 !important;
+}
+
+.swal2-icon.swal2-error .swal2-x-mark {
+    color: #c62828 !important;
+}
+
+.swal2-icon.swal2-success .swal2-success-ring {
+    border-color: #2e7d32 !important;
+}
+
+.swal2-icon.swal2-success [class^='swal2-success-line'] {
+    background-color: #2e7d32 !important;
+}
+
+.swal2-icon.swal2-warning {
+    border-color: #f57f17 !important;
+    color: #f57f17 !important;
+}
+
+@keyframes popupBounce {
+    0% {
+        opacity: 0;
+        transform: scale(0.3) translateY(-50px);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}

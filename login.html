@@ -1,230 +1,51 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
-<meta charset="UTF-8">
-<title>Login</title>
-
-<style>
-body {
-    font-family: Arial;
-    background: #0f172a;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-/* container */
-.wrapper {
-    width: 350px;
-}
-
-/* ===== Tabs ===== */
-.tabs {
-    display: flex;
-    width: 100%;
-}
-
-.tab {
-    flex: 1;
-    text-align: center;
-    padding: 10px;
-    border-radius: 12px 12px 0 0;
-    background: #cbd5c0;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-/* active */
-.active-user {
-    background: #dcefd8;
-}
-
-.active-admin {
-    background: #a7d7a0;
-}
-
-/* ===== Card ===== */
-.card {
-    background: #f4f6f3;
-    padding: 20px;
-    border-radius: 0 0 15px 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-/* title */
-.title {
-    text-align: center;
-    font-size: 22px;
-    font-weight: bold;
-    color: #1b5e20;
-    margin-bottom: 15px;
-}
-
-/* form */
-.form-box {
-    padding: 15px;
-    border-radius: 10px;
-}
-
-.user-bg {
-    background: #e8f5e9;
-}
-
-.admin-bg {
-    background: #c8e6c9;
-}
-
-input {
-    width: 90%;
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 6px;
-    border: 1px solid #aaa;
-}
-
-/* button */
-.btn {
-    margin-top: 15px;
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: none;
-    background: #2e7d32;
-    color: white;
-    cursor: pointer;
-}
-
-.btn:hover {
-    background: #1b5e20;
-}
-
-.hidden {
-    display: none;
-}
-
-</style>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="login.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
 
-<div class="wrapper">
+    <div class="wrapper">
 
-    <!-- Tabs -->
-    <div class="tabs">
-        <div id="userTab" class="tab active-user" onclick="showUser()">User</div>
-        <div id="adminTab" class="tab" onclick="showAdmin()">Admin</div>
-    </div>
-
-    <!-- Card -->
-    <div class="card">
-
-        <!-- Title -->
-        <div class="title">Login</div>
-
-        <!-- USER -->
-        <div id="userForm" class="form-box user-bg">
-            <input type="text" id="userId" placeholder="Student ID">
-            <input type="text" id="userName" placeholder="Name">
-            <button class="btn" onclick="userLogin()">Login</button>
+        <!-- Tabs -->
+        <div class="tabs">
+            <div id="userTab" class="tab active-user" onclick="showUser()">User</div>
+            <div id="adminTab" class="tab" onclick="showAdmin()">Admin</div>
         </div>
 
-        <!-- ADMIN -->
-        <div id="adminForm" class="form-box admin-bg hidden">
-            <input type="text" id="adminId" placeholder="Admin ID">
-            <input type="password" id="adminPass" placeholder="Password">
-            <button class="btn" onclick="adminLogin()">Login</button>
+        <!-- Card -->
+        <div class="card">
+
+            <!-- Title -->
+            <div class="title">Login</div>
+
+            <!-- USER -->
+            <div id="userForm" class="form-box user-bg">
+                <input type="text" id="userId" placeholder="Student ID">
+                <input type="text" id="userName" placeholder="Name">
+                <button class="btn" onclick="userLogin()">Login</button>
+            </div>
+
+            <!-- ADMIN -->
+            <div id="adminForm" class="form-box admin-bg hidden">
+                <input type="text" id="adminId" placeholder="Admin ID">
+                <input type="password" id="adminPass" placeholder="Password">
+                <button class="btn" onclick="adminLogin()">Login</button>
+            </div>
+
         </div>
 
     </div>
 
-</div>
-
-<script>
-
-// App Script
-const url = "https://script.google.com/macros/s/AKfycbx5BBOE1Cf_5V5yUOsXlVkMPYCC652Z3p-9WgvaL9eoz8s33_WZSim2ZMifO4TucWQQgQ/exec";
-
-function checkUser() {
-  const id = document.getElementById("id").value;
-  const name = document.getElementById("name").value;
-
-  fetch(url, {
-    method: "POST",
-    body: JSON.stringify({ id, name })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === "success") {
-      alert("ตรวจสอบสำเร็จ!");
-      window.location.href = "scan.html"; // ไปหน้าถัดไป
-    } else {
-      alert("ไม่พบข้อมูล");
-    }
-  });
-}
-
-// switch tab
-function showUser() {
-    userForm.classList.remove("hidden");
-    adminForm.classList.add("hidden");
-
-    userTab.classList.add("active-user");
-    userTab.classList.remove("active-admin");
-
-    adminTab.classList.remove("active-admin");
-}
-
-function showAdmin() {
-    adminForm.classList.remove("hidden");
-    userForm.classList.add("hidden");
-
-    adminTab.classList.add("active-admin");
-    userTab.classList.remove("active-user");
-}
-
-// user login
-async function userLogin() {
-    let id = userId.value.trim();
-    let name = userName.value.trim();
-
-    if (id === "" || name === "") {
-        alert("กรุณากรอกข้อมูล");
-        return;
-    }
-
-    if (!/^[0-9]+$/.test(id)) {
-        alert("ID ต้องเป็นตัวเลขเท่านั้น");
-        return;
-    }
-
-    if (!sheetUsers.length) {
-        await loadSheetUsers();
-    }
-
-    const found = sheetUsers.find(u => u.id === id && u.name.toLowerCase() === name.toLowerCase());
-
-    if (found) {
-        window.location.href = 'scan.html';
-    } else {
-        alert("ไม่พบรายชื่อ");
-    }
-}
-
-// admin login
-function adminLogin() {
-    if (adminId.value === "001" && adminPass.value === "Admin001") {
-        window.location.href = 'index.html';
-    } else {
-        alert("ข้อมูลไม่ถูกต้อง");
-    }
-}
-
-// โหลดข้อมูลจาก Google Sheets เมื่อเข้าเพจ
-window.addEventListener("load", () => {
-    loadSheetUsers();
-});
-
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="login.js"></script>
 
 </body>
+
 </html>
