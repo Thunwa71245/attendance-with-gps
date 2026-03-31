@@ -1017,10 +1017,66 @@ function checkin(){
       return R * c * 1000;
     }
 
+<<<<<<< HEAD
     function onScanSuccess(decodedText) {
+=======
+    function checkDuplicate() {
+      let today = new Date().toDateString();
+      let last = localStorage.getItem("checkin");
+      if (last == today) {
+        alert("วันนี้คุณเช็คชื่อไปแล้ว");
+        return false;
+      }
+      return true;
+    }
+
+    const SECRET_KEY = "AttAppGps2026!";
+
+    async function generateHash(data) {
+      const msgUint8 = new TextEncoder().encode(data + SECRET_KEY);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    }
+
+    async function onScanSuccess(decodedText) {
+>>>>>>> origin/Location-Security
       if (isProcessing) return;
       isProcessing = true;
 
+      // 1. Validate QR Code Signature
+      let qrData;
+      let isValid = false;
+      let roomName = "";
+
+      try {
+        qrData = JSON.parse(decodedText);
+        if (qrData.payload && qrData.payload.room && qrData.signature) {
+          // Construct the same string that was signed
+          let payloadStr = `${qrData.payload.room}|${qrData.payload.timestamp}`;
+          let expectedSignature = await generateHash(payloadStr);
+          
+          if (expectedSignature === qrData.signature) {
+             isValid = true;
+             roomName = qrData.payload.room;
+          }
+        }
+      } catch(e) {
+        // Not JSON or other error
+      }
+
+      if (!isValid) {
+         // Display rejection message
+         document.getElementById("roomDisplay").innerHTML = "<br><br><span style='color:red; font-size: 18px; font-weight: bold;'>Invalid QR Code / This is not a valid work check-in code</span>";
+         setTimeout(() => {
+           document.getElementById("roomDisplay").innerText = "";
+           isProcessing = false;
+         }, 3000);
+         return;
+      }
+
+      // 2. Geolocation Check
       if (navigator.geolocation) {
         document.getElementById("roomDisplay").innerHTML = "<span style='color: white; font-weight: bold;'>🔍 กำลังตรวจสอบตำแหน่ง...</span>";
 
@@ -1031,7 +1087,7 @@ function checkin(){
             const distance = getDistance(ROOM_LAT, ROOM_LNG, userLat, userLng);
 
             if (distance <= MAX_DISTANCE) {
-              processScan(decodedText);
+              processScan(roomName); // use the validated roomName
             } else {
               document.getElementById("roomDisplay").innerHTML = "<span style='color: #ff6b6b; font-size: 18px; font-weight: bold;'>❌ อยู่นอกพื้นที่ ไม่สามารถเช็คอินได้</span>";
               isProcessing = false;
@@ -1457,6 +1513,7 @@ function checkin(){
       }
     }
 
+<<<<<<< HEAD
     function formatTime(date) {
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -1503,6 +1560,13 @@ function checkin(){
       checkInTime = formatTime(now);
       
       const statusInfo = calculateStatus(now);
+=======
+    function processScan(roomName) {
+      scannedRoom = roomName;
+
+      scanner.clear();
+      document.getElementById("roomDisplay").innerHTML = "Room : <span style='color:#2ecc71;'>" + scannedRoom + "</span><br><br><span style='color:#3498db;font-weight:bold;'>กำลังบันทึกข้อมูล...</span>";
+>>>>>>> origin/Location-Security
       
       let data = { 
         date: formatDate(now),
@@ -1563,8 +1627,13 @@ function checkin(){
     }
 
     function closeModal() {
+<<<<<<< HEAD
       document.getElementById("successModal").classList.remove("active");
       window.location.reload();
+=======
+      document.getElementById("successModal").style.display = "none";
+      window.location.href = "index.html";
+>>>>>>> origin/Location-Security
     }
 
     function viewHistory() {
