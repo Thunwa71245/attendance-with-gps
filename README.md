@@ -1,4 +1,3 @@
-# attendance-with-gps📌 QR Code Attendance System
 
 ระบบเช็คชื่อฝึกงานด้วย QR Code + GPS + Google Sheets
 

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Check-in Result</title>
+
+<style>
+body{
+  font-family:Arial;
+  background:#f4f6f9;
+  text-align:center;
+  padding:30px;
+}
+
+.box{
+  background:white;
+  padding:25px;
+  border-radius:15px;
+  max-width:400px;
+  margin:auto;
+  box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+.title{
+  font-size:26px;
+  font-weight:bold;
+  margin-bottom:15px;
+}
+
+.status{
+  font-size:22px;
+  margin-top:10px;
+  font-weight:bold;
+}
+
+.green{ color:#2ecc71; }
+.red{ color:#e74c3c; }
+
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<div class="title">✅ เช็คชื่อสำเร็จ</div>
+
+<div id="room"></div>
+<div id="time"></div>
+<div id="status" class="status"></div>
+
+</div>
+
+<script>
+
+// 🔥 รับค่า
+const params = new URLSearchParams(window.location.search)
+const room = params.get("room")
+const time = params.get("time")
+
+document.getElementById("room").innerText = "ห้อง: " + room
+document.getElementById("time").innerText = "เวลา: " + time
+
+// 🔥 เช็คมาสาย (ตัวอย่าง 09:00)
+let hour = new Date().getHours()
+
+let statusText = ""
+let className = ""
+
+if(hour < 9){
+  statusText = "✅ มาทัน"
+  className = "green"
+}else{
+  statusText = "❌ มาสาย"
+  className = "red"
+}
+
+let statusEl = document.getElementById("status")
+statusEl.innerText = statusText
+statusEl.classList.add(className)
+
+</script>
+
+</body>
+</html>
