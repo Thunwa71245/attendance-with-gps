@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="login.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+
+    <div class="wrapper">
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div id="userTab" class="tab active-user" onclick="showUser()">User</div>
+            <div id="adminTab" class="tab" onclick="showAdmin()">Admin</div>
+        </div>
+
+        <!-- Card -->
+        <div class="card">
+
+            <!-- Title -->
+            <div class="title">Login</div>
+
+            <!-- USER -->
+            <div id="userForm" class="form-box user-bg">
+                <input type="text" id="userId" placeholder="Student ID">
+                <input type="text" id="userName" placeholder="Name">
+                <button class="btn" onclick="userLogin()">Login</button>
+            </div>
+
+            <!-- ADMIN -->
+            <div id="adminForm" class="form-box admin-bg hidden">
+                <input type="text" id="adminId" placeholder="Admin ID">
+                <input type="password" id="adminPass" placeholder="Password">
+                <button class="btn" onclick="adminLogin()">Login</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="login.js"></script>
+
+</body>
+
+</html>

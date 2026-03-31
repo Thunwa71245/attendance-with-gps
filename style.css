@@ -1,0 +1,383 @@
+/* Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f6f9;
+  text-align: center;
+  padding: 20px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* Base Container */
+.container {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Typography */
+h1 {
+  margin-top: 0;
+  color: #333;
+  margin-bottom: 25px;
+  font-size: 24px;
+}
+
+h2 {
+  margin-top: 0;
+  color: #333;
+  font-size: 22px;
+}
+
+/* Global Links */
+a.back {
+  display: inline-block;
+  margin-top: 20px;
+  color: #7f8c8d;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+a.back:hover {
+  color: #34495e;
+}
+
+/* Base Buttons */
+button {
+  width: 100%;
+  padding: 16px;
+  margin: 10px 0;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s, filter 0.2s, background 0.3s;
+}
+
+button:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+/* Base Form Elements */
+label {
+  display: block;
+  text-align: left;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0 15px 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+
+/* ===========================
+   Page Specific Overrides
+=========================== */
+
+/* --- Index Page (index.html) --- */
+body.index-page a {
+  text-decoration: none;
+  display: block;
+}
+
+body.index-page button.scan {
+  background: #2ecc71;
+  color: white;
+}
+
+body.index-page button.teacher {
+  background: #3498db;
+  color: white;
+}
+
+body.index-page button.dashboard {
+  background: #9b59b6;
+  color: white;
+}
+
+body.index-page button.config {
+  background: #e67e22;
+  color: white;
+}
+
+/* --- Dashboard Page (dashboard.html) --- */
+body.dashboard-page p {
+  color: #555;
+  margin-bottom: 30px;
+}
+
+body.dashboard-page .btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #9b59b6;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  border-radius: 8px;
+  transition: background 0.3s;
+  margin-bottom: 20px;
+}
+
+body.dashboard-page .btn:hover {
+  background: #8e44ad;
+}
+
+/* --- Scan Page (scan.html) --- */
+body.scan-page {
+  display: block;
+}
+
+body.scan-page .container {
+  max-width: 400px;
+  margin: 5vh auto;
+  padding: 25px;
+}
+
+body.scan-page label {
+  margin-top: 15px;
+}
+
+body.scan-page button {
+  padding: 14px;
+  width: 100%;
+  background: #2ecc71;
+  color: white;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 10px;
+}
+
+body.scan-page button:hover {
+  background: #27ae60;
+}
+
+body.scan-page #reader {
+  width: 100%;
+  max-width: 300px;
+  margin: auto;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+body.scan-page #formSection {
+  display: none;
+  text-align: left;
+  margin-top: 15px;
+}
+
+body.scan-page .roomLabel {
+  font-weight: bold;
+  margin-top: 15px;
+  font-size: 16px;
+  color: #333;
+  padding: 10px;
+}
+
+body.scan-page #reader img {
+  max-width: 100%;
+}
+
+body.scan-page #reader button {
+  width: auto;
+  padding: 8px 15px;
+  margin: 5px;
+  font-size: 14px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transform: none;
+  filter: none;
+}
+
+body.scan-page #reader button:hover {
+  transform: none;
+  filter: brightness(1.1);
+}
+
+/* --- Teacher Page (teacher.html) --- */
+body.teacher-page input {
+  margin-bottom: 20px;
+}
+
+body.teacher-page button {
+  width: 100%;
+  padding: 14px;
+  background: #3498db;
+  color: white;
+  border: none;
+  font-weight: bold;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+body.teacher-page button:hover {
+  background: #2980b9;
+}
+
+body.teacher-page #qrcode {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+}
+
+body.teacher-page #qrcode img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+body.teacher-page a.back {
+  margin-top: 25px;
+}
+
+/* --- Config Page (config.html) --- */
+body.config-page .container {
+  max-width: 450px;
+  text-align: left;
+}
+
+body.config-page h2 {
+  text-align: center;
+}
+
+body.config-page label {
+  margin-top: 15px;
+}
+
+body.config-page input:focus {
+  border-color: #e67e22;
+  outline: none;
+}
+
+body.config-page button {
+  width: 100%;
+  padding: 14px;
+  background: #e67e22;
+  color: white;
+  border: none;
+  font-weight: bold;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 25px;
+}
+
+body.config-page button:hover {
+  background: #d35400;
+}
+
+body.config-page .back-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+body.config-page a.back {
+  margin-top: 0;
+}
+
+/* --- Custom Modal --- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 320px;
+  transform: scale(0.9);
+  animation: scaleUp 0.3s ease-out forwards;
+}
+
+.modal-icon {
+  font-size: 50px;
+  color: #2ecc71;
+  margin-bottom: 15px;
+}
+
+.modal-title {
+  font-size: 20px;
+  color: #333;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.modal-text {
+  color: #555;
+  margin-bottom: 25px;
+}
+
+.modal-btn {
+  background: #3498db;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modal-btn:hover {
+  background: #2980b9;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.9); }
+  to { transform: scale(1); }
+}
