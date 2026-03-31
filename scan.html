@@ -262,7 +262,7 @@
     }
 
     #reader {
-      margin: 30px 0;
+      margin: 20px 0;
       border-radius: 16px;
       overflow: hidden;
       box-shadow: var(--shadow-md);
@@ -282,11 +282,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
       border-radius: 12px;
-      border: 2px dashed var(--border-color);
+      border: 2px dashed #3b82f6;
       font-weight: 600;
-      color: var(--text-muted);
+      color: var(--text-main);
     }
 
     .modal-overlay {
@@ -313,7 +313,9 @@
       border-radius: 24px;
       padding: 50px 40px;
       text-align: center;
-      max-width: 420px;
+      max-width: 900px;
+      max-height: 80vh;
+      overflow-y: auto;
       box-shadow: var(--shadow-xl);
       border: 1px solid rgba(255, 255, 255, 0.8);
       animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -357,8 +359,15 @@
       font-weight: 500;
     }
 
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      animation: slideUp 0.5s ease-out 0.4s both;
+    }
+
     .modal-btn {
-      padding: 14px 40px;
+      padding: 14px 20px;
       background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
       color: white;
       border: none;
@@ -370,13 +379,97 @@
       font-size: 15px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      animation: slideUp 0.5s ease-out 0.4s both;
+    }
+
+    .modal-btn.secondary {
+      background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     }
 
     .modal-btn:hover {
       background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
       transform: translateY(-3px);
       box-shadow: var(--shadow-lg);
+    }
+
+    .modal-btn.secondary:hover {
+      background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .history-table th, .history-table td {
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    .history-table th {
+      background: var(--bg-color);
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .history-table td {
+      background: white;
+      color: var(--text-muted);
+    }
+
+    .month-selector {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .month-selector select {
+      padding: 8px 12px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: white;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .month-selector select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .month-selector label {
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 14px;
+    }
+
+    .history-summary {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .summary-item {
+      display: inline-block;
+      margin: 0 15px 0 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .summary-item span {
+      color: var(--primary-color);
+      font-weight: 800;
     }
 
     .back {
@@ -437,19 +530,32 @@
         font-size: 26px;
       }
 
-      .container {
-        margin: 0 20px;
-        padding: 30px;
-        border-radius: 16px;
+      .scanner-container {
+        gap: 20px;
       }
 
-      h2 {
-        font-size: 26px;
-        margin-bottom: 30px;
+      .scanner-frame {
+        max-width: 100%;
       }
 
-      input {
-        font-size: 16px; /* Prevent zoom on iOS */
+      #reader {
+        min-height: 250px;
+      }
+
+      .scan-instructions {
+        font-size: 14px;
+        padding: 15px;
+      }
+
+      .room-status {
+        padding: 20px;
+        font-size: 16px;
+        min-height: 80px;
+      }
+
+      .scan-actions {
+        flex-direction: column;
+        align-items: center;
       }
     }
   </style>
@@ -464,6 +570,7 @@
         <div class="header-subtitle">QR Code Scanner</div>
       </div>
       <div class="header-buttons">
+        <a href="index.html" class="back-btn">🏠 กลับหน้าหลัก</a>
       </div>
     </div>
   </div>
@@ -491,12 +598,18 @@
       </div>
 
       <button onclick="startScanning()">Proceed to Scan</button>
+      <div style="text-align: center; margin-top: 15px;">
+        <button onclick="goHome()" class="modal-btn secondary" style="font-size: 14px;">🏠 กลับหน้าหลัก</button>
+      </div>
     </div>
 
     <!-- Step 2: Scanner (Hidden initially) -->
     <div id="scanSection" style="display:none;">
       <div id="reader"></div>
       <div class="roomLabel" id="roomDisplay"></div>
+      <div style="text-align: center; margin-top: 20px;">
+        <button onclick="goHome()" class="modal-btn secondary" style="font-size: 14px;">🏠 กลับหน้าหลัก</button>
+      </div>
     </div>
   </div>
 
@@ -504,9 +617,12 @@
   <div id="successModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-icon" id="modalIcon">✅</div>
-      <h3 class="modal-title" id="modalTitle">Success!</h3>
-      <p class="modal-text" id="modalText">Check-in confirmed successfully.</p>
-      <button class="modal-btn" onclick="closeModal()">OK</button>
+      <h3 class="modal-title" id="modalTitle">สแกนสำเร็จ!</h3>
+      <p class="modal-text" id="modalText">บันทึกการเข้างานเรียบร้อยแล้ว</p>
+      <div class="modal-buttons">
+        <button class="modal-btn" onclick="viewHistory()">ดูประวัติส่วนตัว</button>
+        <button class="modal-btn secondary" onclick="goHome()">กลับหน้าหลัก</button>
+      </div>
     </div>
   </div>
 
@@ -519,6 +635,7 @@
     let scanner = null;
     let studentData = { id: null, name: null, room: null };
     let isProcessing = false;
+    let checkInTime = null;
 
     function showStatus(message, type = 'info') {
       const statusDiv = document.getElementById('statusMessage');
@@ -539,7 +656,7 @@
       const room = document.getElementById("room").value.trim();
 
       if (!studentID || !studentName || !room) {
-        showStatus("Please fill in all fields", 'error');
+        showStatus("กรุณากรอกข้อมูลให้ครบถ้วน", 'error');
         return;
       }
 
@@ -547,11 +664,16 @@
       studentData.name = studentName;
       studentData.room = room;
 
+      // เก็บข้อมูลใน localStorage เพื่อไม่ให้ต้องกรอกใหม่
+      localStorage.setItem('studentData', JSON.stringify(studentData));
+
       document.getElementById("formSection").style.display = "none";
       document.getElementById("scanSection").style.display = "block";
-      showStatus("Scanning QR Code... Please point your camera at the QR code", 'info');
+      showStatus("กำลังสแกน QR Code... กรุณาชี้กล้องที่ QR Code", 'info');
 
-      scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+      document.getElementById("roomDisplay").innerHTML = "<span style='color:#1e40af; font-weight: bold;'>📱 กรุณาสแกน QR Code</span>";
+
+      scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250, facingMode: "environment" });
       scanner.render(onScanSuccess, onScanError);
     }
 
@@ -577,7 +699,7 @@
       isProcessing = true;
 
       if (navigator.geolocation) {
-        document.getElementById("roomDisplay").innerHTML = "<span style='color:#f39c12;'>🔍 Checking location...</span>";
+        document.getElementById("roomDisplay").innerHTML = "<span style='color: white; font-weight: bold;'>🔍 กำลังตรวจสอบตำแหน่ง...</span>";
 
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -588,22 +710,22 @@
             if (distance <= MAX_DISTANCE) {
               processScan(decodedText);
             } else {
-              document.getElementById("roomDisplay").innerHTML = "<br><br><span style='color:red; font-size: 18px; font-weight: bold;'>❌ Out of range. Cannot check in.</span>";
+              document.getElementById("roomDisplay").innerHTML = "<span style='color: #ff6b6b; font-size: 18px; font-weight: bold;'>❌ อยู่นอกพื้นที่ ไม่สามารถเช็คอินได้</span>";
               isProcessing = false;
             }
           },
           (error) => {
-            let errorMsg = "Cannot get location";
+            let errorMsg = "ไม่สามารถรับตำแหน่งได้";
             if (error.code === error.PERMISSION_DENIED) {
-              errorMsg = "Please allow location access";
+              errorMsg = "กรุณาอนุญาตการเข้าถึงตำแหน่ง";
             }
-            document.getElementById("roomDisplay").innerHTML = `<br><br><span style='color:red; font-size: 18px; font-weight: bold;'>${errorMsg}</span>`;
+            document.getElementById("roomDisplay").innerHTML = `<span style='color: #ff6b6b; font-size: 18px; font-weight: bold;'>${errorMsg}</span>`;
             isProcessing = false;
           },
           { enableHighAccuracy: true }
         );
       } else {
-        showStatus("Geolocation not supported", 'error');
+        showStatus("ไม่รองรับการระบุตำแหน่ง", 'error');
         isProcessing = false;
       }
     }
@@ -622,29 +744,51 @@
       return `${day}/${month}/${year}`;
     }
 
-    function processScan(decodedText) {
-      const now = new Date();
+    function calculateStatus(checkInTime) {
+      const hour = checkInTime.getHours();
+      const minute = checkInTime.getMinutes();
+      const timeInMinutes = hour * 60 + minute;
+      const workStartTime = 8 * 60; // 8:00 AM
       
-      // Determine status based on check-in time
-      // If scanned at 17:00 (5 PM) or later, mark as absent
-      const hour = now.getHours();
-      let status = 'on-time';
-      if (hour >= 17) {
-        status = 'absent';
+      if (timeInMinutes <= workStartTime) {
+        return { status: 'on-time', lateTime: '-' };
+      } else {
+        const lateMinutes = timeInMinutes - workStartTime;
+        const hours = Math.floor(lateMinutes / 60);
+        const minutes = lateMinutes % 60;
+        
+        let lateTimeStr = '';
+        if (hours > 0) {
+          lateTimeStr += hours + 'h';
+        }
+        if (minutes > 0) {
+          if (lateTimeStr) lateTimeStr += ' ';
+          lateTimeStr += minutes + 'm';
+        }
+        
+        return { status: 'late', lateTime: lateTimeStr };
       }
+    }
+
+    function processScan(decodedText) {
+      scannedRoom = decodedText; // QR code contains room information
+      const now = new Date();
+      checkInTime = formatTime(now);
+      
+      const statusInfo = calculateStatus(now);
       
       let data = { 
         date: formatDate(now),
         student_id: studentData.id, 
         name: studentData.name, 
-        room: studentData.room,
+        room: scannedRoom,
         check_in: formatTime(now),
         check_out: '-',
-        status: status,
-        late_time: '-'
+        status: statusInfo.status,
+        late_time: statusInfo.lateTime
       };
 
-      document.getElementById("roomDisplay").innerHTML = "<span style='color:#2ecc71;'>✅ Saving data...</span>";
+      // ส่งข้อมูลไปยัง Google Apps Script
       sendAttendanceData(data, 0);
     }
 
@@ -666,25 +810,25 @@
         },
         body: JSON.stringify(data)
       }).then(response => {
-        console.log('✅ Data sent successfully');
-        document.getElementById("modalIcon").textContent = "✅";
-        document.getElementById("modalTitle").textContent = "Success!";
-        document.getElementById("modalText").textContent = "Check-in recorded at " + data.check_in;
+        // แม้ว่า mode: no-cors จะไม่ให้เราเห็น response แต่เรายังสามารถถือว่าการส่งสำเร็จ
+        // เนื่องจาก fetch ไม่โยน error หากเซิร์ฟเวอร์ตอบกลับ
+        console.log('✅ ส่งข้อมูลสำเร็จ');
         document.getElementById("successModal").classList.add("active");
       }).catch((err) => {
-        console.error('❌ Error:', err);
+        console.error('❌ เกิดข้อผิดพลาด:', err);
         
         if (retryCount < maxRetries) {
-          console.log(`🔄 Retrying... (${retryCount + 1}/${maxRetries})`);
-          document.getElementById("roomDisplay").innerHTML = `<span style='color:#f59e0b;'>Retrying... (${retryCount + 1}/${maxRetries})</span>`;
+          console.log(`🔄 กำลังลองใหม่... (ครั้งที่ ${retryCount + 1}/${maxRetries})`);
+          document.getElementById("roomDisplay").innerHTML = `<span style='color: white; font-weight: bold;'>กำลังลองส่งข้อมูลใหม่... (${retryCount + 1}/${maxRetries})</span>`;
           
+          // รอ 2 วินาทีก่อนลองใหม่
           setTimeout(() => {
             sendAttendanceData(data, retryCount + 1);
           }, 2000);
         } else {
           document.getElementById("modalIcon").textContent = "❌";
-          document.getElementById("modalTitle").textContent = "Error";
-          document.getElementById("modalText").textContent = "Failed to save data. Please check your connection.";
+          document.getElementById("modalTitle").textContent = "เกิดข้อผิดพลาด";
+          document.getElementById("modalText").textContent = "ไม่สามารถบันทึกข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
           document.getElementById("successModal").classList.add("active");
           isProcessing = false;
         }
@@ -694,6 +838,180 @@
     function closeModal() {
       document.getElementById("successModal").classList.remove("active");
       window.location.reload();
+    }
+
+    function viewHistory() {
+      const apiUrl = typeof GAS_API_URL !== 'undefined' ? GAS_API_URL : '';
+      if (!apiUrl) {
+        document.getElementById("modalText").textContent = "API URL not configured";
+        return;
+      }
+
+      document.getElementById("modalIcon").textContent = "⏳";
+      document.getElementById("modalTitle").textContent = "กำลังโหลดประวัติ...";
+      document.getElementById("modalText").textContent = "กรุณารอสักครู่";
+
+      fetch(`${apiUrl}?student_id=${studentData.id}`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("modalIcon").textContent = "📊";
+          document.getElementById("modalTitle").textContent = `ประวัติการเข้างาน - ${studentData.name} (${studentData.id})`;
+          
+          if (data && data.length > 0) {
+            // จัดกลุ่มข้อมูลตามเดือน
+            const groupedData = groupDataByMonth(data);
+            const months = Object.keys(groupedData).sort().reverse(); // เรียงจากเดือนล่าสุด
+            
+            // สร้าง HTML สำหรับ dropdown และตาราง
+            let html = `
+              <p style="text-align: center; margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">📅 ข้อมูลการเข้างานของคุณ แยกตามเดือน</p>
+              <div class="month-selector">
+                <label for="monthSelect">เลือกเดือน:</label>
+                <select id="monthSelect" onchange="changeMonth(this.value)">
+                  ${months.map(month => `<option value="${month}">${getMonthName(month)}</option>`).join('')}
+                </select>
+              </div>
+              <div id="historyContent">
+                ${generateHistoryTable(groupedData[months[0]], months[0])}
+              </div>
+            `;
+            
+            document.getElementById("modalText").innerHTML = html;
+            
+            // เก็บข้อมูลไว้ใน global สำหรับเปลี่ยนเดือน
+            window.historyData = groupedData;
+            window.historyMonths = months;
+          } else {
+            document.getElementById("modalText").textContent = "ไม่พบข้อมูลประวัติ";
+          }
+          
+          document.querySelector(".modal-buttons").innerHTML = '<button class="modal-btn" onclick="backToSuccess()">กลับ</button>';
+        })
+        .catch(err => {
+          console.error('Error fetching history:', err);
+          document.getElementById("modalIcon").textContent = "❌";
+          document.getElementById("modalTitle").textContent = "เกิดข้อผิดพลาด";
+          document.getElementById("modalText").textContent = "ไม่สามารถโหลดประวัติได้ กรุณาลองใหม่อีกครั้ง";
+          document.querySelector(".modal-buttons").innerHTML = '<button class="modal-btn" onclick="backToSuccess()">กลับ</button>';
+        });
+    }
+
+    function groupDataByMonth(data) {
+      const grouped = {};
+      
+      data.forEach(record => {
+        // แปลงวันที่เป็น object Date
+        const dateParts = record.date.split('/');
+        const day = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]) - 1; // เดือนใน JS เริ่มจาก 0
+        const year = parseInt(dateParts[2]);
+        const date = new Date(year, month, day);
+        
+        // สร้าง key เป็น YYYY-MM
+        const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+        
+        if (!grouped[monthKey]) {
+          grouped[monthKey] = [];
+        }
+        
+        grouped[monthKey].push({
+          ...record,
+          dateObj: date
+        });
+      });
+      
+      // จัดเรียงข้อมูลในแต่ละเดือนตามวันที่
+      Object.keys(grouped).forEach(month => {
+        grouped[month].sort((a, b) => b.dateObj - a.dateObj); // เรียงจากใหม่ไปเก่า
+      });
+      
+      return grouped;
+    }
+
+    function getMonthName(monthKey) {
+      const [year, month] = monthKey.split('-');
+      const monthNames = [
+        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+      ];
+      return `${monthNames[parseInt(month) - 1]} ${parseInt(year) + 543}`; // แปลงเป็นปีไทย
+    }
+
+    function generateHistoryTable(records, monthKey) {
+      if (!records || records.length === 0) {
+        return '<p style="text-align: center; color: var(--text-muted);">ไม่มีข้อมูลในเดือนนี้</p>';
+      }
+      
+      // คำนวณสถิติ
+      const totalDays = records.length;
+      const onTimeDays = records.filter(r => r.status === 'on-time').length;
+      const lateDays = records.filter(r => r.status === 'late').length;
+      
+      let html = `
+        <div style="text-align: center; margin-bottom: 15px;">
+          <p style="color: var(--text-muted); font-size: 12px; margin: 0;">📊 สถิติการเข้างานในเดือนนี้</p>
+        </div>
+        <div class="history-summary">
+          <div class="summary-item">📅 ทั้งหมด: <span>${totalDays}</span> วัน</div>
+          <div class="summary-item">🟢 ตรงเวลา: <span style="color: #10b981;">${onTimeDays}</span> วัน</div>
+          <div class="summary-item">🔴 สาย: <span style="color: #ef4444;">${lateDays}</span> วัน</div>
+        </div>
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th title="วันที่ที่บันทึกการเข้างาน">วันที่</th>
+              <th title="ห้องที่สแกน QR Code">ห้อง</th>
+              <th title="เวลาที่เข้างาน">เวลาเข้า</th>
+              <th title="เวลาที่ออกงาน (ถ้ามีระบบออกงาน)">เวลาออก</th>
+              <th title="สถานะการเข้างาน (ตรงเวลา/สาย)">สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      
+      records.forEach(record => {
+        const statusText = record.status === 'late' ? `⚠️ สาย ${record.late_time}` : '✅ ตรงเวลา';
+        const statusClass = record.status === 'late' ? 'style="color: #ef4444;"' : 'style="color: #10b981;"';
+        const checkOutStyle = record.check_out === '-' ? 'style="color: #6b7280;"' : '';
+        
+        html += `
+          <tr>
+            <td>${record.date}</td>
+            <td>${record.room || '-'}</td>
+            <td>${record.check_in || '-'}</td>
+            <td ${checkOutStyle}>${record.check_out || '-'}</td>
+            <td ${statusClass}>${statusText}</td>
+          </tr>
+        `;
+      });
+      
+      html += `
+          </tbody>
+        </table>
+      `;
+      
+      return html;
+    }
+
+    function changeMonth(monthKey) {
+      const contentDiv = document.getElementById("historyContent");
+      if (window.historyData && window.historyData[monthKey]) {
+        contentDiv.innerHTML = generateHistoryTable(window.historyData[monthKey], monthKey);
+      }
+    }
+
+    function backToSuccess() {
+      document.getElementById("modalIcon").textContent = "✅";
+      document.getElementById("modalTitle").textContent = "สแกนสำเร็จ!";
+      document.getElementById("modalText").textContent = `บันทึกการเข้างานเรียบร้อยแล้ว เวลา ${checkInTime}`;
+      document.querySelector(".modal-buttons").innerHTML = `
+        <button class="modal-btn" onclick="viewHistory()">ดูประวัติส่วนตัว</button>
+        <button class="modal-btn secondary" onclick="goHome()">กลับหน้าหลัก</button>
+      `;
+    }
+
+    function goHome() {
+      window.location.href = 'index.html';
     }
   </script>
 </body>

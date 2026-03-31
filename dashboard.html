@@ -594,7 +594,8 @@
                 
                 if (!name || name === '-' || !date || date === '-') continue;
 
-                const students = String(row['StudentID'] || '-').trim();
+                // แก้ไขการตั้งชื่อตัวแปรที่นี่จาก students เป็น studentId
+                const studentId = String(row['StudentID'] || '-').trim();
                 const room = String(row['Room'] || '-').trim();
                 const checkIn = String(row['CheckIn'] || '-').trim();
                 const checkOut = String(row['CheckOut'] || '-').trim();
@@ -619,7 +620,7 @@
                     }
                     
                     uniqueDataMap.set(key, {
-                        name, date, students, room, lateTime,
+                        name, date, studentId, room, lateTime, // แก้ไข property ให้ตรงกัน
                         entryTime: checkIn, exitTime: checkOut,
                         status: status,
                         attendanceDays: 1
@@ -1193,14 +1194,15 @@
                         y: {
                             beginAtZero: false,
                             min: 6,
-                            max: 10,
+                            max: 18,
                             ticks: {
+                                stepSize: 1, // บังคับให้แสดงทีละ 1 ชั่วโมงเพื่อให้ครบ 06:00 - 18:00
                                 font: { family: "'Prompt', sans-serif", size: 12 },
                                 color: '#64748b',
                                 callback: function(value) {
                                     const hours = Math.floor(value);
                                     const mins = Math.round((value - hours) * 60);
-                                    return hours + ':' + (mins < 10 ? '0' : '') + mins;
+                                    return (hours < 10 ? '0' : '') + hours + ':' + (mins < 10 ? '0' : '') + mins;
                                 }
                             },
                             grid: { color: '#e2e8f0', drawBorder: false }
