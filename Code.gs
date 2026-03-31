@@ -1,250 +1,361 @@
-// ==========================================
-// ระบบบริหารการเข้างาน - Google Apps Script
-// ==========================================
-// แท็บ Google Sheet ที่จำเป็น:
-// - "dashboard" : สำหรับบันทึกข้อมูลการเข้างาน
-// - "Users" : สำหรับจัดการข้อมูลผู้ใช้
+var USERS_SHEET_NAME = "Users";
+var ATTENDANCE_SHEET_NAME = "AttendanceLog";
+var LEGACY_ATTENDANCE_SHEET_NAME = "dashboard";
+
+var USERS_HEADERS = ["userId", "userName", "role", "password"];
+var ATTENDANCE_HEADERS = [
+  "userId",
+  "userName",
+  "scanDate",
+  "checkInTime",
+  "checkOutTime",
+  "status",
+  "timestamp",
+  "room",
+  "lateTime",
+  "location",
+  "distanceMeters"
+];
+
+function doGet(e) {
+  var output = createJsonOutput();
+
+  try {
+    var params = (e && e.parameter) || {};
+
+    if (params.id && params.name) {
+      return output.setContent(JSON.stringify(findUserForLogin(params.id, params.name)));
+    }
+
+    if (params.student_id || params.userId) {
+      var userId = params.student_id || params.userId;
+      return output.setContent(JSON.stringify(getAttendanceRows(userId)));
+    }
+
+    return output.setContent(JSON.stringify(getAttendanceRows()));
+  } catch (error) {
+    return output.setContent(JSON.stringify({
+      success: false,
+      error: error.toString()
+    }));
+  }
+}
 
 function doPost(e) {
-  var output = ContentService.createTextOutput();
-  output.setMimeType(ContentService.MimeType.JSON);
+  var output = createJsonOutput();
 
   try {
-    // การจัดการข้อผิดพลาด: กรณีไม่มีการส่งข้อมูล
-    if (!e.postData || !e.postData.contents) {
-      return output.setContent(JSON.stringify({ 
-        success: false, 
-        message: "ไม่ได้รับข้อมูล" 
-      });
+    if (!e || !e.postData || !e.postData.contents) {
+      return output.setContent(JSON.stringify({ success: false, message: "Missing request body" }));
     }
 
-    // แปลง JSON ที่ได้รับ
     var payload = JSON.parse(e.postData.contents);
-    
-    // ==========================================
-    // 1️⃣ บันทึกข้อมูลการเข้างาน (Attendance Check-in)
-    // ==========================================
-    if (payload.date && payload.student_id && payload.name) {
-      return saveAttendance(payload, output);
-    }
-    
-    // ==========================================
-    // 2️⃣ การจัดการการลงทะเบียน/เข้าสู่ระบบ
-    // ==========================================
+
     if (payload.action) {
-      return handleUserAction(payload, output);
+      return output.setContent(JSON.stringify(handleAction(payload)));
     }
-    
-    return output.setContent(JSON.stringify({ 
-      success: false, 
-      message: "คำขอไม่ถูกต้อง" 
-    }));
 
+    if (payload.date && payload.student_id && payload.name) {
+      return output.setContent(JSON.stringify(saveAttendance(payload)));
+    }
+
+    return output.setContent(JSON.stringify({ success: false, message: "Unsupported payload" }));
   } catch (error) {
-    Logger.log("ข้อผิดพลาด: " + error.toString());
-    return output.setContent(JSON.stringify({ 
-      success: false, 
-      message: "ข้อผิดพลาด: " + error.toString() 
+    return output.setContent(JSON.stringify({
+      success: false,
+      message: error.toString()
     }));
   }
 }
 
-// ==========================================
-// บันทึกข้อมูลการเข้างานลงใน Google Sheet
-// ==========================================
-function saveAttendance(payload, output) {
-  try {
-    // รับชีต "dashboard"
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("dashboard");
-    
-    if (!sheet) {
-      // สร้างชีตหากไม่มีอยู่
-      sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("dashboard");
-      
-      // เพิ่มแถวหัวเรื่อง
-      sheet.appendRow([
-        "Date",        // A: วันที่
-        "StudentID",   // B: รหัสนักศึกษา
-        "Name",        // C: ชื่อ
-        "Room",        // D: ห้อง
-        "CheckIn",     // E: เวลาเข้า
-        "CheckOut",    // F: เวลาออก
-        "Status",      // G: สถานะ
-        "LateTime"     // H: เวลาสาย
-      ]);
-    }
+function handleAction(payload) {
+  var action = String(payload.action || "").trim();
 
-    // ตรวจสอบซ้ำ (นักศึกษาเดียวกันในวันเดียวกัน)
-    var data = sheet.getDataRange().getValues();
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][0] === payload.date && data[i][1] === payload.student_id) {
-        // อัพเดตข้อมูลหากมีบันทึกในวันเดียวกันแล้ว
-        sheet.getRange(i + 1, 5, 1, 4).setValues([[
-          payload.check_in,
-          payload.check_out,
-          payload.status,
-          payload.late_time
-        ]]);
-        
-        return output.setContent(JSON.stringify({ 
-          success: true, 
-          message: "อัพเดตข้อมูลการเข้างานเรียบร้อย",
-          action: "update"
-        }));
-      }
-    }
-
-    // เพิ่มบันทึกใหม่
-    sheet.appendRow([
-      payload.date,
-      payload.student_id,
-      payload.name,
-      payload.room,
-      payload.check_in,
-      payload.check_out,
-      payload.status,
-      payload.late_time
-    ]);
-
-    Logger.log("✅ บันทึกข้อมูลการเข้างาน: " + payload.student_id + " - " + payload.name);
-
-    return output.setContent(JSON.stringify({ 
-      success: true, 
-      message: "บันทึกข้อมูลการเข้างานเรียบร้อย",
-      action: "insert"
-    }));
-
-  } catch (error) {
-    Logger.log("ข้อผิดพลาดในการบันทึกข้อมูลการเข้างาน: " + error.toString());
-    return output.setContent(JSON.stringify({ 
-      success: false, 
-      message: "ล้มเหลวในการบันทึกข้อมูล: " + error.toString() 
-    }));
+  if (action === "login") {
+    return loginWithPassword(payload);
   }
+
+  if (action === "createDefaultAdmin") {
+    return ensureDefaultAdmin();
+  }
+
+  return { success: false, message: "Unknown action" };
 }
 
-// ==========================================
-// การจัดการการกระทำของผู้ใช้ (ลงทะเบียน/เข้าสู่ระบบ)
-// ==========================================
-function handleUserAction(payload, output) {
-  var action = payload.action;
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Users");
-  
+function findUserForLogin(userId, userName) {
+  var users = getUserRows();
+  var normalizedId = normalizeValue(userId);
+  var normalizedName = normalizeValue(userName);
+
+  for (var i = 0; i < users.length; i++) {
+    var user = users[i];
+    if (normalizeValue(user.userId) === normalizedId && normalizeValue(user.userName) === normalizedName) {
+      return {
+        success: true,
+        status: "success",
+        userId: user.userId,
+        userName: user.userName,
+        role: user.role || "user"
+      };
+    }
+  }
+
+  return {
+    success: false,
+    status: "error",
+    message: "User not found"
+  };
+}
+
+function loginWithPassword(payload) {
+  var users = getUserRows();
+  var userId = normalizeValue(payload.userId || payload.sid);
+  var password = normalizeValue(payload.password || payload.pass);
+
+  for (var i = 0; i < users.length; i++) {
+    var user = users[i];
+    if (normalizeValue(user.userId) === userId && normalizeValue(user.password) === password) {
+      return {
+        success: true,
+        userId: user.userId,
+        userName: user.userName,
+        role: user.role || "user"
+      };
+    }
+  }
+
+  return {
+    success: false,
+    message: "Invalid user ID or password"
+  };
+}
+
+function saveAttendance(payload) {
+  var sheet = getOrCreateAttendanceSheet();
+  var rows = sheet.getDataRange().getValues();
+  var nowIso = new Date().toISOString();
+  var location = payload.location || "-";
+  var distanceMeters = payload.distance_meters || payload.distanceMeters || "-";
+
+  for (var i = 1; i < rows.length; i++) {
+    var rowUserId = normalizeValue(rows[i][0]);
+    var rowDate = normalizeValue(rows[i][2]);
+
+    if (rowUserId === normalizeValue(payload.student_id) && rowDate === normalizeValue(payload.date)) {
+      sheet.getRange(i + 1, 2, 1, 10).setValues([[
+        payload.name,
+        payload.date,
+        payload.check_in || rows[i][3] || "-",
+        payload.check_out || rows[i][4] || "-",
+        payload.status || rows[i][5] || "-",
+        payload.timestamp || nowIso,
+        payload.room || rows[i][7] || "-",
+        payload.late_time || rows[i][8] || "-",
+        location,
+        distanceMeters
+      ]]);
+
+      return {
+        success: true,
+        message: "Attendance updated",
+        action: "update"
+      };
+    }
+  }
+
+  sheet.appendRow([
+    payload.student_id,
+    payload.name,
+    payload.date,
+    payload.check_in || "-",
+    payload.check_out || "-",
+    payload.status || "-",
+    payload.timestamp || nowIso,
+    payload.room || "-",
+    payload.late_time || "-",
+    location,
+    distanceMeters
+  ]);
+
+  return {
+    success: true,
+    message: "Attendance saved",
+    action: "insert"
+  };
+}
+
+function getAttendanceRows(filterUserId) {
+  var sheet = getAttendanceSheet();
   if (!sheet) {
-    return output.setContent(JSON.stringify({ 
-      success: false, 
-      message: "กรุณาสร้างชีต 'Users'" 
-    }));
+    return [];
   }
 
-  var data = sheet.getDataRange().getValues();
-
-  // 1️⃣ ลงทะเบียนผู้ใช้
-  if (action === "register") {
-    // ตรวจสอบรหัสซ้ำ
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][0] == payload.sid) {
-        return output.setContent(JSON.stringify({ 
-          success: false, 
-          message: "รหัสนักศึกษานี้ลงทะเบียนแล้ว" 
-        }));
-      }
-    }
-    
-    var d = payload.data;
-    // ลำดับคอลัมน์: SID, Password, Fname, Lname, Phone, DOB, Email, IDCard
-    sheet.appendRow([payload.sid, payload.pass, d.fname, d.lname, d.phone, d.dob, d.email, d.idcard]);
-    
-    return output.setContent(JSON.stringify({ success: true }));
-  }
-  
-  // 2️⃣ เข้าสู่ระบบ
-  else if (action === "login") {
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][0] == payload.sid && data[i][1] == payload.pass) {
-        return output.setContent(JSON.stringify({ 
-          success: true, 
-          name: data[i][2] // ส่งชื่อกลับ
-        }));
-      }
-    }
-    return output.setContent(JSON.stringify({ 
-      success: false, 
-      message: "รหัสนักศึกษา หรือ รหัสผ่านไม่ถูกต้อง" 
-    }));
-  }
-  
-  // 3️⃣ ตรวจสอบผู้ใช้
-  else if (action === "checkUser") {
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][0] == payload.sid) {
-        return output.setContent(JSON.stringify({ success: true }));
-      }
-    }
-    return output.setContent(JSON.stringify({ success: false }));
+  var values = sheet.getDataRange().getValues();
+  if (!values || values.length <= 1) {
+    return [];
   }
 
-  // 4️⃣ ยืนยันผู้ใช้
-  else if (action === "verifyUser") {
-    var colMap = { 'phone': 4, 'dob': 5, 'email': 6, 'idcard': 7 };
-    
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][0] == payload.sid) {
-        var val1 = data[i][colMap[payload.k1]];
-        var val2 = data[i][colMap[payload.k2]];
-        
-        if (val1 == payload.v1 && val2 == payload.v2) {
-          return output.setContent(JSON.stringify({ success: true }));
-        }
-      }
+  var rows = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = mapAttendanceRow(values[i]);
+    if (!row.userId || row.userId === "-") {
+      continue;
     }
-    return output.setContent(JSON.stringify({ success: false }));
+
+    if (filterUserId && normalizeValue(row.userId) !== normalizeValue(filterUserId)) {
+      continue;
+    }
+
+    rows.push({
+      StudentID: row.userId,
+      Name: row.userName,
+      Date: row.scanDate,
+      CheckIn: row.checkInTime,
+      CheckOut: row.checkOutTime,
+      Status: row.status,
+      LateTime: row.lateTime,
+      Room: row.room,
+      Timestamp: row.timestamp,
+      Location: row.location,
+      DistanceMeters: row.distanceMeters
+    });
   }
 
-  // 5️⃣ รีเซ็ตรหัสผ่าน
-  else if (action === "resetPassword") {
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][0] == payload.sid) {
-        sheet.getRange(i + 1, 2).setValue(payload.newPass);
-        return output.setContent(JSON.stringify({ success: true }));
-      }
-    }
-    return output.setContent(JSON.stringify({ success: false }));
-  }
-
-  return output.setContent(JSON.stringify({ 
-    success: false, 
-    message: "การดำเนินการไม่ถูกต้อง" 
-  }));
+  return rows;
 }
 
-// ==========================================
-// แก้ไขข้อบกพร่อง: ตั้งค่า Google Sheet
-// ==========================================
-function setupSheets() {
+function getUserRows() {
+  var sheet = getOrCreateUsersSheet();
+  var values = sheet.getDataRange().getValues();
+  if (!values || values.length <= 1) {
+    return [];
+  }
+
+  var headers = values[0];
+  var rows = [];
+  for (var i = 1; i < values.length; i++) {
+    rows.push(mapUserRow(values[i], headers));
+  }
+  return rows;
+}
+
+function getOrCreateUsersSheet() {
+  return getOrCreateSheet(USERS_SHEET_NAME, USERS_HEADERS);
+}
+
+function getOrCreateAttendanceSheet() {
+  return getOrCreateSheet(ATTENDANCE_SHEET_NAME, ATTENDANCE_HEADERS);
+}
+
+function getAttendanceSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  // สร้างชีต "dashboard"
-  try {
-    var dashSheet = ss.getSheetByName("dashboard");
-    if (!dashSheet) {
-      dashSheet = ss.insertSheet("dashboard");
-      dashSheet.appendRow(["Date", "StudentID", "Name", "Room", "CheckIn", "CheckOut", "Status", "LateTime"]);
-    }
-    Logger.log("✅ ชีต 'dashboard' พร้อมใช้งาน");
-  } catch (e) {
-    Logger.log("❌ ข้อผิดพลาด: " + e.toString());
+  return ss.getSheetByName(ATTENDANCE_SHEET_NAME) || ss.getSheetByName(LEGACY_ATTENDANCE_SHEET_NAME);
+}
+
+function getOrCreateSheet(sheetName, headers) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    sheet.appendRow(headers);
+    return sheet;
   }
-  
-  // สร้างชีต "Users"
-  try {
-    var usersSheet = ss.getSheetByName("Users");
-    if (!usersSheet) {
-      usersSheet = ss.insertSheet("Users");
-      usersSheet.appendRow(["SID", "Password", "Fname", "Lname", "Phone", "DOB", "Email", "IDCard"]);
-    }
-    Logger.log("✅ ชีต 'Users' พร้อมใช้งาน");
-  } catch (e) {
-    Logger.log("❌ ข้อผิดพลาด: " + e.toString());
+
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(headers);
   }
+
+  return sheet;
+}
+
+function mapUserRow(row, headers) {
+  var header0 = normalizeValue(headers && headers[0]);
+  var header1 = normalizeValue(headers && headers[1]);
+  var header2 = normalizeValue(headers && headers[2]);
+
+  if (header0 === "userid" && header1 === "username") {
+    return {
+      userId: row[0] || "",
+      userName: row[1] || "",
+      role: row[2] || "user",
+      password: row[3] || ""
+    };
+  }
+
+  if (header0 === "sid" && header1 === "password") {
+    var firstName = String(row[2] || "").trim();
+    var lastName = String(row[3] || "").trim();
+    return {
+      userId: row[0] || "",
+      userName: [firstName, lastName].join(" ").trim() || firstName,
+      role: "user",
+      password: row[1] || ""
+    };
+  }
+
+  return {
+    userId: row[0] || "",
+    userName: row[1] || row[2] || "",
+    role: header2 === "role" ? (row[2] || "user") : "user",
+    password: row[3] || row[1] || ""
+  };
+}
+
+function mapAttendanceRow(row) {
+  if (row.length >= 11) {
+    return {
+      userId: row[0] || "-",
+      userName: row[1] || "-",
+      scanDate: row[2] || "-",
+      checkInTime: row[3] || "-",
+      checkOutTime: row[4] || "-",
+      status: row[5] || "-",
+      timestamp: row[6] || "-",
+      room: row[7] || "-",
+      lateTime: row[8] || "-",
+      location: row[9] || "-",
+      distanceMeters: row[10] || "-"
+    };
+  }
+
+  return {
+    userId: row[1] || row[0] || "-",
+    userName: row[2] || "-",
+    scanDate: row[0] || "-",
+    checkInTime: row[4] || "-",
+    checkOutTime: row[5] || "-",
+    status: row[6] || "-",
+    timestamp: row[0] && row[4] ? row[0] + " " + row[4] : "-",
+    room: row[3] || "-",
+    lateTime: row[7] || "-",
+    location: "-",
+    distanceMeters: "-"
+  };
+}
+
+function ensureDefaultAdmin() {
+  var sheet = getOrCreateUsersSheet();
+  var users = getUserRows();
+  for (var i = 0; i < users.length; i++) {
+    if (normalizeValue(users[i].userId) === "001") {
+      return { success: true, message: "Default admin already exists" };
+    }
+  }
+
+  sheet.appendRow(["001", "System Admin", "admin", "Admin001"]);
+  return { success: true, message: "Default admin created" };
+}
+
+function setupSheets() {
+  getOrCreateUsersSheet();
+  getOrCreateAttendanceSheet();
+  ensureDefaultAdmin();
+}
+
+function createJsonOutput() {
+  return ContentService.createTextOutput().setMimeType(ContentService.MimeType.JSON);
+}
+
+function normalizeValue(value) {
+  return String(value === null || value === undefined ? "" : value).trim().toLowerCase();
 }

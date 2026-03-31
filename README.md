@@ -1,10 +1,14 @@
-<<<<<<< HEAD
-=======
-# attendance-with-gps📌 QR Code Attendance System
->>>>>>> origin/feature/dashboard
+# attendance-with-gps
 
-ระบบเช็คชื่อฝึกงานด้วย QR Code + GPS + Google Sheets
+QR Code attendance system with login, check-in scanning, location security, dashboard, and Google Apps Script integration.
 
-โปรเจคนี้เป็น Web Application สำหรับใช้ตรวจสอบเวลาเข้าเรียนหรือเข้างานของนักศึกษา โดยผู้ใช้งานสามารถสแกน QR Code ภายในพื้นที่ที่กำหนด แล้วกรอกข้อมูลเพื่อเช็คชื่อ ระบบจะบันทึกข้อมูลลง Google Sheets อัตโนมัติ พร้อมคำนวณสถานะการมาทำงาน
+Core pages:
+- `login.html` for student/admin login
+- `scan.html` for QR scanning and attendance submission
+- `teacher.html` for room QR generation
+- `dashboard.html` for attendance reporting
+- `config.html` for local system configuration
 
-ระบบถูกออกแบบให้มีโครงสร้างเรียบง่าย ใช้งานง่าย และสามารถขยายระบบได้ในอนาคต
+Configuration:
+- Default API endpoint is defined in `api-config.js`
+- Local overrides can be saved from `config.html` via `localStorage`

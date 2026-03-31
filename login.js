@@ -1,177 +1,175 @@
-// App Script
-const url = "https://script.google.com/macros/s/AKfycbznrBpQ50ND_nI2JEnGG57GVbBIjkrMVJnK8OuvWq547GdGKL7fatHxPIkzrbgUZURq2w/exec";
+const LOGIN_TIMEOUT_MS = 8000;
+const ADMIN_CREDENTIALS = {
+  id: "001",
+  password: "Admin001"
+};
 
-// switch tab
+const userTab = document.getElementById("userTab");
+const adminTab = document.getElementById("adminTab");
+const userForm = document.getElementById("userForm");
+const adminForm = document.getElementById("adminForm");
+
 function showUser() {
-    userForm.classList.remove("hidden");
-    adminForm.classList.add("hidden");
-
-    userTab.classList.add("active-user");
-    userTab.classList.remove("active-admin");
-
-    adminTab.classList.remove("active-admin");
+  userForm.classList.remove("hidden");
+  adminForm.classList.add("hidden");
+  userTab.classList.add("active-user");
+  adminTab.classList.remove("active-admin");
 }
 
 function showAdmin() {
-    adminForm.classList.remove("hidden");
-    userForm.classList.add("hidden");
-
-    adminTab.classList.add("active-admin");
-    userTab.classList.remove("active-user");
+  adminForm.classList.remove("hidden");
+  userForm.classList.add("hidden");
+  adminTab.classList.add("active-admin");
+  userTab.classList.remove("active-user");
 }
 
-// user login
-function userLogin() {
-    let id = document.getElementById("userId").value.trim();
-    let name = document.getElementById("userName").value.trim();
-
-    if (id === "" || name === "") {
-        Swal.fire({
-            icon: 'warning',
-            title: 'กรุณากรอกข้อมูล',
-            text: 'โปรดกรอกข้อมูลให้ครบถ้วน',
-            confirmButtonColor: '#2e7d32',
-            backdrop: 'rgba(15, 23, 42, 0.5)',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: (modal) => modal.classList.add('popup-bounce')
-        });
-        return;
-    }
-
-    if (!/^[0-9]+$/.test(id)) {
-        Swal.fire({
-            icon: 'error',
-            title: 'รูปแบบข้อมูลไม่ถูกต้อง',
-            text: 'ID ต้องเป็นตัวเลขเท่านั้น',
-            confirmButtonColor: '#2e7d32',
-            backdrop: 'rgba(15, 23, 42, 0.5)',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: (modal) => modal.classList.add('popup-bounce')
-        });
-        return;
-    }
-
-    const btn = document.querySelector("#userForm .btn");
-    const originalText = btn.innerText;
-    btn.innerText = "กำลังตรวจสอบ...";
-    btn.disabled = true;
-
-    // ตั้ง timeout 5 วินาที
-    const timeoutId = setTimeout(() => {
-        btn.innerText = originalText;
-        btn.disabled = false;
-        Swal.fire({
-            icon: 'error',
-            title: 'หมดเวลา',
-            text: 'การตรวจสอบใช้เวลานานเกินไป โปรดลองอีกครั้ง',
-            confirmButtonColor: '#2e7d32',
-            backdrop: 'rgba(15, 23, 42, 0.5)',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: (modal) => modal.classList.add('popup-bounce')
-        });
-    }, 5000);
-
-    // ทำการส่งข้อมูลผ่าน HTTP GET เพื่อตัดปัญหาเรื่อง CORS Preflight
-    const fetchUrl = `${url}?id=${encodeURIComponent(id)}&name=${encodeURIComponent(name)}`;
-
-    fetch(fetchUrl)
-        .then(res => res.text()) // รับมาเป็น text เพื่อตรวจสอบก่อน
-        .then(text => {
-            clearTimeout(timeoutId);
-            btn.innerText = originalText;
-            btn.disabled = false;
-
-            try {
-                const data = JSON.parse(text);
-
-                if (data.status === "success") {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'สำเร็จ',
-                        text: 'ลงทะเบียนสำเร็จ',
-                        confirmButtonColor: '#2e7d32',
-                        backdrop: 'rgba(15, 23, 42, 0.5)',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        didOpen: (modal) => modal.classList.add('popup-bounce')
-                    }).then(() => {
-                        window.location.href = "scan.html";
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'ไม่พบข้อมูล',
-                        text: data.message || "ไม่พบข้อมูลในระบบ",
-                        confirmButtonColor: '#2e7d32',
-                        backdrop: 'rgba(15, 23, 42, 0.5)',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        didOpen: (modal) => modal.classList.add('popup-bounce')
-                    });
-                }
-            } catch (e) {
-                console.error("Text Output:", text);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'เกิดข้อผิดพลาด',
-                    text: 'ระบบเกิดข้อผิดพลาดในการรับข้อมูล (เช่น ไม่ได้ตั้งสิทธิ์ Apps Script เป็น Anyone)',
-                    confirmButtonColor: '#2e7d32',
-                    backdrop: 'rgba(15, 23, 42, 0.5)',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: (modal) => modal.classList.add('popup-bounce')
-                });
-            }
-        })
-        .catch(error => {
-            clearTimeout(timeoutId);
-            btn.innerText = originalText;
-            btn.disabled = false;
-            console.error("Fetch Error:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
-                text: error.message,
-                confirmButtonColor: '#2e7d32',
-                backdrop: 'rgba(15, 23, 42, 0.5)',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: (modal) => modal.classList.add('popup-bounce')
-            });
-        });
+function showAlert(options) {
+  return Swal.fire({
+    confirmButtonColor: "#2e7d32",
+    backdrop: "rgba(15, 23, 42, 0.5)",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: (modal) => modal.classList.add("popup-bounce"),
+    ...options
+  });
 }
 
-// admin login
-function adminLogin() {
-    const adminIdInput = document.getElementById("adminId").value;
-    const adminPassInput = document.getElementById("adminPass").value;
+function setButtonState(selector, loadingText) {
+  const button = document.querySelector(selector);
+  if (!button) return () => {};
 
-    if (adminIdInput === "001" && adminPassInput === "Admin001") {
-        Swal.fire({
-            icon: 'success',
-            title: 'สำเร็จ',
-            text: 'เข้าสู่ระบบผู้ดูแลสำเร็จ',
-            confirmButtonColor: '#2e7d32',
-            backdrop: 'rgba(15, 23, 42, 0.5)',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: (modal) => modal.classList.add('popup-bounce')
-        }).then(() => {
-            window.location.href = 'index.html';
-        });
-    } else {
-        Swal.fire({
-            icon: 'error',
-            title: 'ข้อมูลไม่ถูกต้อง',
-            text: 'โปรดตรวจสอบ ID และรหัสผ่าน',
-            confirmButtonColor: '#2e7d32',
-            backdrop: 'rgba(15, 23, 42, 0.5)',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: (modal) => modal.classList.add('popup-bounce')
-        });
+  const originalText = button.innerText;
+  button.innerText = loadingText;
+  button.disabled = true;
+
+  return () => {
+    button.innerText = originalText;
+    button.disabled = false;
+  };
+}
+
+function buildUserLookupUrl(studentId, studentName) {
+  const apiUrl = typeof getConfiguredGasApiUrl === "function" ? getConfiguredGasApiUrl() : GAS_API_URL;
+  const url = new URL(apiUrl);
+  url.searchParams.set("id", studentId);
+  url.searchParams.set("name", studentName);
+  return url.toString();
+}
+
+function persistStudentProfile(studentId, studentName, role = "user") {
+  localStorage.removeItem("adminLoggedIn");
+  localStorage.setItem(
+    "studentData",
+    JSON.stringify({
+      id: studentId,
+      name: studentName,
+      role,
+      room: localStorage.getItem("default_room") || "",
+      loggedInAt: new Date().toISOString()
+    })
+  );
+}
+
+async function userLogin() {
+  const studentId = document.getElementById("userId").value.trim();
+  const studentName = document.getElementById("userName").value.trim();
+
+  if (!studentId || !studentName) {
+    showAlert({
+      icon: "warning",
+      title: "กรุณากรอกข้อมูล",
+      text: "โปรดกรอก Student ID และชื่อให้ครบถ้วน"
+    });
+    return;
+  }
+
+  if (!/^[0-9]+$/.test(studentId)) {
+    showAlert({
+      icon: "error",
+      title: "ข้อมูลไม่ถูกต้อง",
+      text: "Student ID ต้องเป็นตัวเลขเท่านั้น"
+    });
+    return;
+  }
+
+  const restoreButton = setButtonState("#userForm .btn", "กำลังตรวจสอบ...");
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), LOGIN_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(buildUserLookupUrl(studentId, studentName), {
+      method: "GET",
+      signal: controller.signal
+    });
+    const rawText = await response.text();
+
+    let payload = null;
+    try {
+      payload = JSON.parse(rawText);
+    } catch (error) {
+      throw new Error("INVALID_RESPONSE");
     }
+
+    if (payload.status === "success" || payload.success === true) {
+      const resolvedUserId = payload.userId || studentId;
+      const resolvedUserName = payload.userName || payload.name || studentName;
+      persistStudentProfile(resolvedUserId, resolvedUserName, payload.role || "user");
+
+      await showAlert({
+        icon: "success",
+        title: "เข้าสู่ระบบสำเร็จ",
+        text: `ยินดีต้อนรับ ${resolvedUserName}`
+      });
+
+      window.location.href = "scan.html";
+      return;
+    }
+
+    await showAlert({
+      icon: "error",
+      title: "ไม่พบข้อมูลผู้ใช้",
+      text: payload.message || "ไม่พบผู้ใช้ในระบบ"
+    });
+  } catch (error) {
+    const message =
+      error.name === "AbortError"
+        ? "การเชื่อมต่อใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง"
+        : error.message === "INVALID_RESPONSE"
+          ? "API ตอบกลับมาไม่อยู่ในรูปแบบที่ระบบใช้งานได้"
+          : error.message || "ไม่สามารถเชื่อมต่อระบบได้";
+
+    await showAlert({
+      icon: "error",
+      title: "เกิดข้อผิดพลาด",
+      text: message
+    });
+  } finally {
+    clearTimeout(timeoutId);
+    restoreButton();
+  }
+}
+
+async function adminLogin() {
+  const adminId = document.getElementById("adminId").value.trim();
+  const adminPass = document.getElementById("adminPass").value;
+
+  if (adminId === ADMIN_CREDENTIALS.id && adminPass === ADMIN_CREDENTIALS.password) {
+    localStorage.removeItem("studentData");
+    localStorage.setItem("adminLoggedIn", "true");
+
+    await showAlert({
+      icon: "success",
+      title: "เข้าสู่ระบบสำเร็จ",
+      text: "กำลังเปิดหน้า dashboard"
+    });
+
+    window.location.href = "dashboard.html";
+    return;
+  }
+
+  showAlert({
+    icon: "error",
+    title: "ข้อมูลไม่ถูกต้อง",
+    text: "Admin ID หรือรหัสผ่านไม่ถูกต้อง"
+  });
 }
