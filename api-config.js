@@ -1,2 +1,2 @@
 const GAS_API_URL =
-"https://script.google.com/macros/s/AKfycbyeFVJn_R3Vn480zsbxVUbyRmHhTrWG_0BOFjfxBz4/dev"
+ 'https://script.google.com/macros/s/AKfycbxkthm6Kmq61oSckBHv6wGerL2bdgvn-k1yTWbrqOjeSlcjwgV3JEjoOhq3i8933YRS1w/exec';

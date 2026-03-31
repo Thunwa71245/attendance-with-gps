@@ -1,16 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Check-in System</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script src="api-config.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-<meta charset="UTF-8">
-<title>Intern Check-in</title>
+    :root {
+      --primary-color: #3b82f6;
+      --primary-dark: #1e40af;
+      --success-color: #10b981;
+      --danger-color: #ef4444;
+      --warning-color: #f59e0b;
+      --info-color: #0ea5e9;
+      --bg-color: #f0f9ff;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.12);
+      --shadow-xl: 0 20px 50px rgba(15, 23, 42, 0.2);
+    }
 
-<script src="api-config.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-<style>
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
 
+<<<<<<< HEAD
 body{
   font-family:Arial;
   background:#f4f6f9;
@@ -86,20 +122,560 @@ button{
 .roomLabel{
   font-weight:bold;
 }
+=======
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
 
-</style>
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
 
+    body {
+      font-family: 'Prompt', 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding-bottom: 40px;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e40af 20%, #3b82f6 40%, #0ea5e9 70%, #06b6d4 100%);
+      padding: 50px 24px;
+      box-shadow: var(--shadow-xl);
+      margin-bottom: 50px;
+      border-radius: 0 0 32px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .header-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 30px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      color: #ffffff;
+      margin-bottom: 8px;
+      font-weight: 800;
+      text-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+      letter-spacing: -0.5px;
+    }
+>>>>>>> origin/feature/dashboard
+
+    .header-subtitle {
+      color: #e0f2fe;
+      font-size: 14px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      padding: 11px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+      font-size: 14px;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      padding: 50px;
+      animation: slideUp 0.6s ease-out 0.2s both;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--text-main);
+      margin-bottom: 40px;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .form-group {
+      margin-bottom: 28px;
+      animation: slideUp 0.6s ease-out forwards;
+    }
+
+    .form-group:nth-child(1) { animation-delay: 0.3s; }
+    .form-group:nth-child(2) { animation-delay: 0.4s; }
+    .form-group:nth-child(3) { animation-delay: 0.5s; }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      font-size: 16px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-family: inherit;
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    input::placeholder {
+      color: #a0aec0;
+      font-weight: 400;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      transform: scale(1.02);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: var(--shadow-md);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+      animation: slideUp 0.6s ease-out 0.6s both;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: left 0.4s ease;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    button:active {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: var(--shadow-sm);
+    }
+
+    #reader {
+      margin: 20px 0;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      border: 2px solid var(--border-color);
+    }
+
+    #reader video {
+      display: block;
+      width: 100%;
+    }
+
+    .roomLabel {
+      text-align: center;
+      padding: 30px 20px;
+      font-size: 18px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      border-radius: 12px;
+      border: 2px dashed #3b82f6;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 24px;
+      padding: 50px 40px;
+      text-align: center;
+      max-width: 900px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .modal-content::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .modal-icon {
+      font-size: 70px;
+      margin-bottom: 24px;
+      animation: slideUp 0.5s ease-out 0.1s both;
+      display: inline-block;
+    }
+
+    .modal-title {
+      font-size: 28px;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      font-weight: 800;
+      animation: slideUp 0.5s ease-out 0.2s both;
+      letter-spacing: -0.5px;
+    }
+
+    .modal-text {
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      font-size: 16px;
+      line-height: 1.6;
+      animation: slideUp 0.5s ease-out 0.3s both;
+      font-weight: 500;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      animation: slideUp 0.5s ease-out 0.4s both;
+    }
+
+    .modal-btn {
+      padding: 14px 20px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: var(--shadow-md);
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .modal-btn.secondary {
+      background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    }
+
+    .modal-btn:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-btn.secondary:hover {
+      background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .history-table th, .history-table td {
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    .history-table th {
+      background: var(--bg-color);
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .history-table td {
+      background: white;
+      color: var(--text-muted);
+    }
+
+    .month-selector {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .month-selector select {
+      padding: 8px 12px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: white;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .month-selector select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .month-selector label {
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 14px;
+    }
+
+    .history-summary {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .summary-item {
+      display: inline-block;
+      margin: 0 15px 0 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .summary-item span {
+      color: var(--primary-color);
+      font-weight: 800;
+    }
+
+    .back {
+      display: block;
+      text-align: center;
+      margin-top: 25px;
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      letter-spacing: 0.3px;
+    }
+
+    .back:hover {
+      color: var(--primary-dark);
+      transform: translateX(3px);
+    }
+
+    .status-message {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      display: none;
+      animation: slideUp 0.4s ease-out;
+      border-left: 4px solid;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .status-message.success {
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+      color: #065f46;
+      border-left-color: var(--success-color);
+    }
+
+    .status-message.error {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      color: #991b1b;
+      border-left-color: var(--danger-color);
+    }
+
+    .status-message.info {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      color: #0c2d6b;
+      border-left-color: var(--info-color);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .header {
+        padding: 40px 20px;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        font-size: 26px;
+      }
+
+      .scanner-container {
+        gap: 20px;
+      }
+
+      .scanner-frame {
+        max-width: 100%;
+      }
+
+      #reader {
+        min-height: 250px;
+      }
+
+      .scan-instructions {
+        font-size: 14px;
+        padding: 15px;
+      }
+
+      .room-status {
+        padding: 20px;
+        font-size: 16px;
+        min-height: 80px;
+      }
+
+      .scan-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-container">
+      <div>
+        <h1>📱 Student Check-in</h1>
+        <div class="header-subtitle">QR Code Scanner</div>
+      </div>
+      <div class="header-buttons">
+        <a href="index.html" class="back-btn">🏠 กลับหน้าหลัก</a>
+      </div>
+    </div>
+  </div>
 
-<div class="container">
+  <div class="container">
+    <h2>📱 Student Check-in</h2>
+    
+    <div id="statusMessage" class="status-message"></div>
 
+<<<<<<< HEAD
 <div class="title">📷 สแกนเข้าห้อง</div>
 <div class="subtitle">กรุณาสแกน QR Code เพื่อเช็คชื่อ</div>
+=======
+    <!-- Step 1: User Info Form -->
+    <div id="formSection" style="display:block;">
+      <div class="form-group">
+        <label for="student_id">Student ID</label>
+        <input id="student_id" placeholder="Enter your ID" type="text">
+      </div>
+>>>>>>> origin/feature/dashboard
 
-<div id="reader"></div>
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input id="name" placeholder="Enter your Name" type="text">
+      </div>
 
+<<<<<<< HEAD
 <input type="file" id="qrFile" accept="image/*" style="display:none;">
 
 <div class="roomLabel" id="roomDisplay"></div>
@@ -109,11 +685,72 @@ button{
 <input id="name" placeholder="Name">
 <button onclick="checkin()">Check-in</button>
 </div>
+=======
+      <div class="form-group">
+        <label for="room">Room</label>
+        <input id="room" placeholder="Enter your Room (e.g., 1-0308)" type="text">
+      </div>
 
-</div>
+      <button onclick="startScanning()">Proceed to Scan</button>
+      <div style="text-align: center; margin-top: 15px;">
+        <button onclick="goHome()" class="modal-btn secondary" style="font-size: 14px;">🏠 กลับหน้าหลัก</button>
+      </div>
+    </div>
 
-<script>
+    <!-- Step 2: Scanner (Hidden initially) -->
+    <div id="scanSection" style="display:none;">
+      <div id="reader"></div>
+      <div class="roomLabel" id="roomDisplay"></div>
+      <div style="text-align: center; margin-top: 20px;">
+        <button onclick="goHome()" class="modal-btn secondary" style="font-size: 14px;">🏠 กลับหน้าหลัก</button>
+      </div>
+    </div>
+  </div>
 
+  <!-- Success Modal -->
+  <div id="successModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-icon" id="modalIcon">✅</div>
+      <h3 class="modal-title" id="modalTitle">สแกนสำเร็จ!</h3>
+      <p class="modal-text" id="modalText">บันทึกการเข้างานเรียบร้อยแล้ว</p>
+      <div class="modal-buttons">
+        <button class="modal-btn" onclick="viewHistory()">ดูประวัติส่วนตัว</button>
+        <button class="modal-btn secondary" onclick="goHome()">กลับหน้าหลัก</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ROOM_LAT = 13.90142;
+    const ROOM_LNG = 100.53235;
+    const MAX_DISTANCE = 50;
+
+    let scannedRoom = null;
+    let scanner = null;
+    let studentData = { id: null, name: null, room: null };
+    let isProcessing = false;
+    let checkInTime = null;
+>>>>>>> origin/feature/dashboard
+
+    function showStatus(message, type = 'info') {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.textContent = message;
+      statusDiv.className = `status-message ${type}`;
+      statusDiv.style.display = 'block';
+      
+      if (type === 'error') {
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 5000);
+      }
+    }
+
+    function startScanning() {
+      const studentID = document.getElementById("student_id").value.trim();
+      const studentName = document.getElementById("name").value.trim();
+      const room = document.getElementById("room").value.trim();
+
+<<<<<<< HEAD
 function onScanSuccess(decodedText){
 
   let url = new URL(decodedText, window.location.origin)
@@ -217,6 +854,367 @@ function checkin(){
 }
 
 </script>
+=======
+      if (!studentID || !studentName || !room) {
+        showStatus("กรุณากรอกข้อมูลให้ครบถ้วน", 'error');
+        return;
+      }
 
+      studentData.id = studentID;
+      studentData.name = studentName;
+      studentData.room = room;
+
+      // เก็บข้อมูลใน localStorage เพื่อไม่ให้ต้องกรอกใหม่
+      localStorage.setItem('studentData', JSON.stringify(studentData));
+
+      document.getElementById("formSection").style.display = "none";
+      document.getElementById("scanSection").style.display = "block";
+      showStatus("กำลังสแกน QR Code... กรุณาชี้กล้องที่ QR Code", 'info');
+
+      document.getElementById("roomDisplay").innerHTML = "<span style='color:#1e40af; font-weight: bold;'>📱 กรุณาสแกน QR Code</span>";
+
+      scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250, facingMode: "environment" });
+      scanner.render(onScanSuccess, onScanError);
+    }
+
+    function onScanError(error) {
+      // Silently ignore scanning errors
+      console.log("Scan error:", error);
+    }
+
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c * 1000;
+    }
+
+    function onScanSuccess(decodedText) {
+      if (isProcessing) return;
+      isProcessing = true;
+
+      if (navigator.geolocation) {
+        document.getElementById("roomDisplay").innerHTML = "<span style='color: white; font-weight: bold;'>🔍 กำลังตรวจสอบตำแหน่ง...</span>";
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+            const distance = getDistance(ROOM_LAT, ROOM_LNG, userLat, userLng);
+
+            if (distance <= MAX_DISTANCE) {
+              processScan(decodedText);
+            } else {
+              document.getElementById("roomDisplay").innerHTML = "<span style='color: #ff6b6b; font-size: 18px; font-weight: bold;'>❌ อยู่นอกพื้นที่ ไม่สามารถเช็คอินได้</span>";
+              isProcessing = false;
+            }
+          },
+          (error) => {
+            let errorMsg = "ไม่สามารถรับตำแหน่งได้";
+            if (error.code === error.PERMISSION_DENIED) {
+              errorMsg = "กรุณาอนุญาตการเข้าถึงตำแหน่ง";
+            }
+            document.getElementById("roomDisplay").innerHTML = `<span style='color: #ff6b6b; font-size: 18px; font-weight: bold;'>${errorMsg}</span>`;
+            isProcessing = false;
+          },
+          { enableHighAccuracy: true }
+        );
+      } else {
+        showStatus("ไม่รองรับการระบุตำแหน่ง", 'error');
+        isProcessing = false;
+      }
+    }
+
+    function formatTime(date) {
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${hours}:${minutes}:${seconds}`;
+    }
+
+    function formatDate(date) {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    function calculateStatus(checkInTime) {
+      const hour = checkInTime.getHours();
+      const minute = checkInTime.getMinutes();
+      const timeInMinutes = hour * 60 + minute;
+      const workStartTime = 8 * 60; // 8:00 AM
+      
+      if (timeInMinutes <= workStartTime) {
+        return { status: 'on-time', lateTime: '-' };
+      } else {
+        const lateMinutes = timeInMinutes - workStartTime;
+        const hours = Math.floor(lateMinutes / 60);
+        const minutes = lateMinutes % 60;
+        
+        let lateTimeStr = '';
+        if (hours > 0) {
+          lateTimeStr += hours + 'h';
+        }
+        if (minutes > 0) {
+          if (lateTimeStr) lateTimeStr += ' ';
+          lateTimeStr += minutes + 'm';
+        }
+        
+        return { status: 'late', lateTime: lateTimeStr };
+      }
+    }
+
+    function processScan(decodedText) {
+      scannedRoom = decodedText; // QR code contains room information
+      const now = new Date();
+      checkInTime = formatTime(now);
+      
+      const statusInfo = calculateStatus(now);
+      
+      let data = { 
+        date: formatDate(now),
+        student_id: studentData.id, 
+        name: studentData.name, 
+        room: scannedRoom,
+        check_in: formatTime(now),
+        check_out: '-',
+        status: statusInfo.status,
+        late_time: statusInfo.lateTime
+      };
+
+      // ส่งข้อมูลไปยัง Google Apps Script
+      sendAttendanceData(data, 0);
+    }
+
+    function sendAttendanceData(data, retryCount = 0) {
+      const maxRetries = 3;
+      const apiUrl = typeof GAS_API_URL !== 'undefined' ? GAS_API_URL : '';
+
+      if (!apiUrl) {
+        showStatus("API URL not configured", 'error');
+        isProcessing = false;
+        return;
+      }
+
+      fetch(apiUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      }).then(response => {
+        // แม้ว่า mode: no-cors จะไม่ให้เราเห็น response แต่เรายังสามารถถือว่าการส่งสำเร็จ
+        // เนื่องจาก fetch ไม่โยน error หากเซิร์ฟเวอร์ตอบกลับ
+        console.log('✅ ส่งข้อมูลสำเร็จ');
+        document.getElementById("successModal").classList.add("active");
+      }).catch((err) => {
+        console.error('❌ เกิดข้อผิดพลาด:', err);
+        
+        if (retryCount < maxRetries) {
+          console.log(`🔄 กำลังลองใหม่... (ครั้งที่ ${retryCount + 1}/${maxRetries})`);
+          document.getElementById("roomDisplay").innerHTML = `<span style='color: white; font-weight: bold;'>กำลังลองส่งข้อมูลใหม่... (${retryCount + 1}/${maxRetries})</span>`;
+          
+          // รอ 2 วินาทีก่อนลองใหม่
+          setTimeout(() => {
+            sendAttendanceData(data, retryCount + 1);
+          }, 2000);
+        } else {
+          document.getElementById("modalIcon").textContent = "❌";
+          document.getElementById("modalTitle").textContent = "เกิดข้อผิดพลาด";
+          document.getElementById("modalText").textContent = "ไม่สามารถบันทึกข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
+          document.getElementById("successModal").classList.add("active");
+          isProcessing = false;
+        }
+      });
+    }
+
+    function closeModal() {
+      document.getElementById("successModal").classList.remove("active");
+      window.location.reload();
+    }
+
+    function viewHistory() {
+      const apiUrl = typeof GAS_API_URL !== 'undefined' ? GAS_API_URL : '';
+      if (!apiUrl) {
+        document.getElementById("modalText").textContent = "API URL not configured";
+        return;
+      }
+
+      document.getElementById("modalIcon").textContent = "⏳";
+      document.getElementById("modalTitle").textContent = "กำลังโหลดประวัติ...";
+      document.getElementById("modalText").textContent = "กรุณารอสักครู่";
+
+      fetch(`${apiUrl}?student_id=${studentData.id}`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("modalIcon").textContent = "📊";
+          document.getElementById("modalTitle").textContent = `ประวัติการเข้างาน - ${studentData.name} (${studentData.id})`;
+          
+          if (data && data.length > 0) {
+            // จัดกลุ่มข้อมูลตามเดือน
+            const groupedData = groupDataByMonth(data);
+            const months = Object.keys(groupedData).sort().reverse(); // เรียงจากเดือนล่าสุด
+            
+            // สร้าง HTML สำหรับ dropdown และตาราง
+            let html = `
+              <p style="text-align: center; margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">📅 ข้อมูลการเข้างานของคุณ แยกตามเดือน</p>
+              <div class="month-selector">
+                <label for="monthSelect">เลือกเดือน:</label>
+                <select id="monthSelect" onchange="changeMonth(this.value)">
+                  ${months.map(month => `<option value="${month}">${getMonthName(month)}</option>`).join('')}
+                </select>
+              </div>
+              <div id="historyContent">
+                ${generateHistoryTable(groupedData[months[0]], months[0])}
+              </div>
+            `;
+            
+            document.getElementById("modalText").innerHTML = html;
+            
+            // เก็บข้อมูลไว้ใน global สำหรับเปลี่ยนเดือน
+            window.historyData = groupedData;
+            window.historyMonths = months;
+          } else {
+            document.getElementById("modalText").textContent = "ไม่พบข้อมูลประวัติ";
+          }
+          
+          document.querySelector(".modal-buttons").innerHTML = '<button class="modal-btn" onclick="backToSuccess()">กลับ</button>';
+        })
+        .catch(err => {
+          console.error('Error fetching history:', err);
+          document.getElementById("modalIcon").textContent = "❌";
+          document.getElementById("modalTitle").textContent = "เกิดข้อผิดพลาด";
+          document.getElementById("modalText").textContent = "ไม่สามารถโหลดประวัติได้ กรุณาลองใหม่อีกครั้ง";
+          document.querySelector(".modal-buttons").innerHTML = '<button class="modal-btn" onclick="backToSuccess()">กลับ</button>';
+        });
+    }
+
+    function groupDataByMonth(data) {
+      const grouped = {};
+      
+      data.forEach(record => {
+        // แปลงวันที่เป็น object Date
+        const dateParts = record.date.split('/');
+        const day = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]) - 1; // เดือนใน JS เริ่มจาก 0
+        const year = parseInt(dateParts[2]);
+        const date = new Date(year, month, day);
+        
+        // สร้าง key เป็น YYYY-MM
+        const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+        
+        if (!grouped[monthKey]) {
+          grouped[monthKey] = [];
+        }
+        
+        grouped[monthKey].push({
+          ...record,
+          dateObj: date
+        });
+      });
+      
+      // จัดเรียงข้อมูลในแต่ละเดือนตามวันที่
+      Object.keys(grouped).forEach(month => {
+        grouped[month].sort((a, b) => b.dateObj - a.dateObj); // เรียงจากใหม่ไปเก่า
+      });
+      
+      return grouped;
+    }
+
+    function getMonthName(monthKey) {
+      const [year, month] = monthKey.split('-');
+      const monthNames = [
+        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+      ];
+      return `${monthNames[parseInt(month) - 1]} ${parseInt(year) + 543}`; // แปลงเป็นปีไทย
+    }
+
+    function generateHistoryTable(records, monthKey) {
+      if (!records || records.length === 0) {
+        return '<p style="text-align: center; color: var(--text-muted);">ไม่มีข้อมูลในเดือนนี้</p>';
+      }
+      
+      // คำนวณสถิติ
+      const totalDays = records.length;
+      const onTimeDays = records.filter(r => r.status === 'on-time').length;
+      const lateDays = records.filter(r => r.status === 'late').length;
+      
+      let html = `
+        <div style="text-align: center; margin-bottom: 15px;">
+          <p style="color: var(--text-muted); font-size: 12px; margin: 0;">📊 สถิติการเข้างานในเดือนนี้</p>
+        </div>
+        <div class="history-summary">
+          <div class="summary-item">📅 ทั้งหมด: <span>${totalDays}</span> วัน</div>
+          <div class="summary-item">🟢 ตรงเวลา: <span style="color: #10b981;">${onTimeDays}</span> วัน</div>
+          <div class="summary-item">🔴 สาย: <span style="color: #ef4444;">${lateDays}</span> วัน</div>
+        </div>
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th title="วันที่ที่บันทึกการเข้างาน">วันที่</th>
+              <th title="ห้องที่สแกน QR Code">ห้อง</th>
+              <th title="เวลาที่เข้างาน">เวลาเข้า</th>
+              <th title="เวลาที่ออกงาน (ถ้ามีระบบออกงาน)">เวลาออก</th>
+              <th title="สถานะการเข้างาน (ตรงเวลา/สาย)">สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      
+      records.forEach(record => {
+        const statusText = record.status === 'late' ? `⚠️ สาย ${record.late_time}` : '✅ ตรงเวลา';
+        const statusClass = record.status === 'late' ? 'style="color: #ef4444;"' : 'style="color: #10b981;"';
+        const checkOutStyle = record.check_out === '-' ? 'style="color: #6b7280;"' : '';
+        
+        html += `
+          <tr>
+            <td>${record.date}</td>
+            <td>${record.room || '-'}</td>
+            <td>${record.check_in || '-'}</td>
+            <td ${checkOutStyle}>${record.check_out || '-'}</td>
+            <td ${statusClass}>${statusText}</td>
+          </tr>
+        `;
+      });
+      
+      html += `
+          </tbody>
+        </table>
+      `;
+      
+      return html;
+    }
+
+    function changeMonth(monthKey) {
+      const contentDiv = document.getElementById("historyContent");
+      if (window.historyData && window.historyData[monthKey]) {
+        contentDiv.innerHTML = generateHistoryTable(window.historyData[monthKey], monthKey);
+      }
+    }
+
+    function backToSuccess() {
+      document.getElementById("modalIcon").textContent = "✅";
+      document.getElementById("modalTitle").textContent = "สแกนสำเร็จ!";
+      document.getElementById("modalText").textContent = `บันทึกการเข้างานเรียบร้อยแล้ว เวลา ${checkInTime}`;
+      document.querySelector(".modal-buttons").innerHTML = `
+        <button class="modal-btn" onclick="viewHistory()">ดูประวัติส่วนตัว</button>
+        <button class="modal-btn secondary" onclick="goHome()">กลับหน้าหลัก</button>
+      `;
+    }
+>>>>>>> origin/feature/dashboard
+
+    function goHome() {
+      window.location.href = 'index.html';
+    }
+  </script>
 </body>
+
 </html>
