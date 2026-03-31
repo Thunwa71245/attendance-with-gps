@@ -1,194 +1,185 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Intern Check-in</title>
 
-<head>
+    <script src="api-config.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
-<meta charset="UTF-8">
-<title>Intern Check-in</title>
+    <style>
+      body {
+        font-family: Arial;
+        background: #f4f6f9;
+        text-align: center;
+        padding: 30px;
+      }
 
-<script src="api-config.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
+      .container {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        max-width: 400px;
+        margin: auto;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
 
-<style>
+      input {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+      }
 
-body{
-font-family:Arial;
-background:#f4f6f9;
-text-align:center;
-padding:30px;
-}
+      button {
+        padding: 12px;
+        width: 100%;
+        background: #2ecc71;
+        color: white;
+        border: none;
+        font-size: 16px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
 
-.container{
-background:white;
-padding:25px;
-border-radius:10px;
-max-width:400px;
-margin:auto;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
-}
+      #reader {
+        width: 300px;
+        margin: auto;
+      }
 
-input{
-width:100%;
-padding:10px;
-margin:10px 0;
-}
+      #formSection {
+        display: none;
+      }
 
-button{
-padding:12px;
-width:100%;
-background:#2ecc71;
-color:white;
-border:none;
-font-size:16px;
-border-radius:6px;
-cursor:pointer;
-}
+      .roomLabel {
+        font-weight: bold;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
 
-#reader{
-width:300px;
-margin:auto;
-}
+  <body>
+    <div class="container">
+      <h2>Intern Check-in</h2>
 
-#formSection{
-display:none;
-}
+      <div id="reader"></div>
 
-.roomLabel{
-font-weight:bold;
-margin-top:10px;
-}
+      <div class="roomLabel" id="roomDisplay"></div>
 
-</style>
+      <div id="formSection">
+        Student ID
+        <input id="student_id" />
 
-</head>
+        Name
+        <input id="name" />
 
-<body>
+        <button onclick="checkin()">Check-in</button>
+      </div>
+    </div>
 
-<div class="container">
+    <script>
+      const ROOM_LAT = 13.901234;
+      const ROOM_LNG = 100.532456;
+      const MAX_DISTANCE = 50;
 
-<h2>Intern Check-in</h2>
+      const CHECKIN_STORAGE_KEY = "checkin";
 
-<div id="reader"></div>
+      let scannedRoom = null;
+      let scanner = null;
 
-<div class="roomLabel" id="roomDisplay"></div>
+      function getDistance(lat1, lon1, lat2, lon2) {
+        const earthRadiusKm = 6371;
 
-<div id="formSection">
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLon = ((lon2 - lon1) * Math.PI) / 180;
 
-Student ID
-<input id="student_id">
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
 
-Name
-<input id="name">
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-<button onclick="checkin()">Check-in</button>
+        return earthRadiusKm * c * 1000;
+      }
 
-</div>
+      function checkDuplicate() {
+        const today = new Date().toDateString();
+        const lastCheckin = localStorage.getItem(CHECKIN_STORAGE_KEY);
 
-</div>
+        if (lastCheckin === today) {
+          alert("วันนี้คุณเช็คชื่อไปแล้ว");
+          return false;
+        }
 
-<script>
+        return true;
+      }
 
-const ROOM_LAT = 13.901234
-const ROOM_LNG = 100.532456
-const MAX_DISTANCE = 50
+      function onScanSuccess(decodedText) {
+        const url = new URL(decodedText, window.location.origin);
+        scannedRoom = url.searchParams.get("room");
 
-let scannedRoom = null
-let scanner = null
+        if (scanner) {
+          scanner.clear();
+        }
 
-function getDistance(lat1, lon1, lat2, lon2){
+        document.getElementById("roomDisplay").innerText = `Room : ${scannedRoom}`;
+        document.getElementById("formSection").style.display = "block";
+      }
 
-const R = 6371
+      function getFormData() {
+        return {
+          studentId: document.getElementById("student_id").value.trim(),
+          name: document.getElementById("name").value.trim(),
+        };
+      }
 
-const dLat = (lat2-lat1) * Math.PI/180
-const dLon = (lon2-lon1) * Math.PI/180
+      async function checkin() {
+        if (!scannedRoom) {
+          alert("กรุณาสแกน QR ก่อน");
+          return;
+        }
 
-const a =
-Math.sin(dLat/2) * Math.sin(dLat/2) +
-Math.cos(lat1*Math.PI/180) *
-Math.cos(lat2*Math.PI/180) *
-Math.sin(dLon/2) * Math.sin(dLon/2)
+        if (!checkDuplicate()) {
+          return;
+        }
 
-const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))
+        const { studentId, name } = getFormData();
+        if (!studentId || !name) {
+          alert("กรอกข้อมูลก่อน");
+          return;
+        }
 
-return R*c*1000
+        const data = {
+          student_id: studentId,
+          name,
+          room: scannedRoom,
+        };
 
-}
+        try {
+          await fetch(GAS_API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(data),
+          });
 
-function checkDuplicate(){
+          localStorage.setItem(CHECKIN_STORAGE_KEY, new Date().toDateString());
+          alert("Check-in success");
+        } catch (error) {
+          console.error("Check-in failed", error);
+          alert("เกิดข้อผิดพลาดในการเช็คชื่อ");
+        }
+      }
 
-let today = new Date().toDateString()
-let last = localStorage.getItem("checkin")
+      scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 });
+      scanner.render(onScanSuccess);
 
-if(last == today){
-
-alert("วันนี้คุณเช็คชื่อไปแล้ว")
-return false
-
-}
-
-return true
-
-}
-
-function onScanSuccess(decodedText){
-
-// decodedText เช่น scan.html?room=1-0308
-let url = new URL(decodedText, window.location.origin)
-
-scannedRoom = url.searchParams.get("room")
-
-// หยุดกล้อง
-scanner.clear()
-
-// แสดงห้อง
-document.getElementById("roomDisplay").innerText = "Room : " + scannedRoom
-
-// แสดงฟอร์ม
-document.getElementById("formSection").style.display = "block"
-
-}
-
-function checkin(){
-
-console.log("checkin clicked")
-
-if(!scannedRoom){
-alert("กรุณาสแกน QR ก่อน")
-return
-}
-
-let studentID = document.getElementById("student_id").value
-let name = document.getElementById("name").value
-
-if(!studentID || !name){
-alert("กรอกข้อมูลก่อน")
-return
-}
-
-let data = {
-student_id: studentID,
-name: name,
-room: scannedRoom
-}
-
-console.log(data)
-
-fetch(GAS_API_URL,{
-  method:"POST",
-  mode:"no-cors",
-  body:JSON.stringify(data)
-})
-.then(()=>{
-  alert("Check-in success")
-})
-
-}
-
-// เริ่ม scanner
-scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:200})
-scanner.render(onScanSuccess)
-
-</script>
-
-</body>
+      // keep constants referenced to avoid accidental removal in future refactor
+      void ROOM_LAT;
+      void ROOM_LNG;
+      void MAX_DISTANCE;
+      void getDistance;
+    </script>
+  </body>
 </html>
