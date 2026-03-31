@@ -30,7 +30,6 @@ body{
 .title{
   font-size:30px;
   font-weight:bold;
-  margin-bottom:5px;
 }
 
 .subtitle{
@@ -39,10 +38,21 @@ body{
   margin-bottom:15px;
 }
 
+/* 💻 คอม */
 #reader{
   width:100%;
+  max-width:400px;
+  margin:auto;
   border-radius:12px;
   overflow:hidden;
+}
+
+/* 📱 มือถือ */
+@media (max-width:768px){
+  #reader{
+    width:100%;
+    height:65vh; /* 🔥 ใหญ่เฉพาะมือถือ */
+  }
 }
 
 input{
@@ -59,26 +69,14 @@ button{
   background:#2ecc71;
   color:white;
   border:none;
-  font-size:16px;
   border-radius:10px;
-  cursor:pointer;
 }
 
-/* 🔥 ปุ่ม Request Camera */
 #reader__dashboard_section button{
   background: linear-gradient(135deg,#3498db,#2ecc71) !important;
   color:white !important;
-  font-weight:bold !important;
-  border:none !important;
   border-radius:12px !important;
-  padding:14px !important;
   width:100% !important;
-}
-
-@media (max-width:768px){
-  .title{
-    font-size:34px;
-  }
 }
 
 #formSection{
@@ -87,7 +85,6 @@ button{
 
 .roomLabel{
   font-weight:bold;
-  margin-top:10px;
 }
 
 </style>
@@ -103,21 +100,14 @@ button{
 
 <div id="reader"></div>
 
-<!-- 🔥 ปุ่มเลือกไฟล์ (มือถือเท่านั้น) -->
 <input type="file" id="qrFile" accept="image/*" style="display:none;">
 
 <div class="roomLabel" id="roomDisplay"></div>
 
 <div id="formSection">
-
-Student ID
-<input id="student_id">
-
-Name
-<input id="name">
-
+<input id="student_id" placeholder="Student ID">
+<input id="name" placeholder="Name">
 <button onclick="checkin()">Check-in</button>
-
 </div>
 
 </div>
@@ -144,76 +134,39 @@ function onScanSuccess(decodedText){
   document.getElementById("formSection").style.display = "block"
 }
 
-function checkin(){
-
-  if(!scannedRoom){
-    alert("กรุณาสแกน QR ก่อน")
-    return
-  }
-
-  let studentID = document.getElementById("student_id").value
-  let name = document.getElementById("name").value
-
-  if(!studentID || !name){
-    alert("กรอกข้อมูลก่อน")
-    return
-  }
-
-  let data = {
-    student_id: studentID,
-    name: name,
-    room: scannedRoom
-  }
-
-  fetch(GAS_API_URL,{
-    method:"POST",
-    mode:"no-cors",
-    body:JSON.stringify(data)
-  })
-  .then(()=>{
-    alert("Check-in success")
-  })
-}
-
 // 🔥 ตรวจอุปกรณ์
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 
 if(isMobile){
 
-  // 📱 มือถือ → เปิดกล้องทันที
+  // 📱 มือถือ
   Html5Qrcode.getCameras().then(devices => {
 
-    let backCamera = devices.find(d =>
-      d.label.toLowerCase().includes("back") ||
-      d.label.toLowerCase().includes("rear")
-    )
+    let backCamera = devices[devices.length - 1]
 
-    if(!backCamera){
-      backCamera = devices[devices.length - 1]
-    }
+    const qrSize = 300 // 🔥 ใหญ่เฉพาะมือถือ
 
     scanner = new Html5Qrcode("reader")
 
     scanner.start(
       backCamera.id,
-      { fps:10, qrbox:250 },
+      { fps:10, qrbox: qrSize },
       onScanSuccess
     )
   })
 
-  // 🔥 แสดงปุ่มเลือกไฟล์
   document.getElementById("qrFile").style.display = "block"
 
 }else{
 
-  // 💻 คอม → เหมือนเดิม
-  scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:250})
+  // 💻 คอม
+  scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:200})
   scanner.render(onScanSuccess)
 
   document.getElementById("qrFile").style.display = "none"
 }
 
-// 🔥 scan จากไฟล์
+// 🔥 scan file
 document.getElementById("qrFile").addEventListener("change", function(e){
 
   const file = e.target.files[0]
@@ -229,6 +182,33 @@ document.getElementById("qrFile").addEventListener("change", function(e){
       alert("อ่าน QR ไม่สำเร็จ")
     })
 })
+
+function checkin(){
+
+  if(!scannedRoom){
+    alert("กรุณาสแกน QR ก่อน")
+    return
+  }
+
+  let studentID = document.getElementById("student_id").value
+  let name = document.getElementById("name").value
+
+  if(!studentID || !name){
+    alert("กรอกข้อมูลก่อน")
+    return
+  }
+
+  fetch(GAS_API_URL,{
+    method:"POST",
+    mode:"no-cors",
+    body:JSON.stringify({
+      student_id: studentID,
+      name: name,
+      room: scannedRoom
+    })
+  })
+  .then(()=> alert("Check-in success"))
+}
 
 </script>
 
