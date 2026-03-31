@@ -371,6 +371,10 @@
         let detailModalEmployeeName = '';
         let detailChartInstance = null;
         let currentEmployeeData = [];
+        let isLoadingData = false;
+        const CACHE_KEY = 'attendance_data_cache';
+        const CACHE_EXPIRY_KEY = 'attendance_cache_expiry';
+        const CACHE_VALIDITY_MINUTES = 5; // แคชได้ 5 นาที
 
         document.addEventListener('DOMContentLoaded', function () {
             setupEventListeners();
@@ -383,6 +387,9 @@
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000); // อัพเดตเวลาทุกวินาที
             updateMonthDisplay();
+            // โหลดข้อมูลเก่าจากแคชก่อน
+            loadCachedData();
+            // ดึงข้อมูลใหม่ในพื้นหลัง
             loadAttendanceData();
         }
 
@@ -423,12 +430,53 @@
             el.textContent = text;
         }
 
+        // 💾 โหลดข้อมูลจากแคช
+        function loadCachedData() {
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                const expiry = localStorage.getItem(CACHE_EXPIRY_KEY);
+                
+                if (cached && expiry) {
+                    const now = new Date().getTime();
+                    if (now < parseInt(expiry)) {
+                        const cachedData = JSON.parse(cached);
+                        setApiStatus('success', '✓ ข้อมูลแคช');
+                        processData(cachedData);
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.log('แคชไม่พร้อมใช้');
+            }
+            return false;
+        }
+
+        // 💾 บันทึกข้อมูลลงแคช
+        function saveCacheData(data) {
+            try {
+                const expiry = new Date().getTime() + (CACHE_VALIDITY_MINUTES * 60 * 1000);
+                localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                localStorage.setItem(CACHE_EXPIRY_KEY, expiry.toString());
+            } catch (e) {
+                console.log('ไม่สามารถบันทึกแคช');
+            }
+        }
+
+        function setApiStatus(statusType, text) {
+            const el = document.getElementById('apiStatus');
+            el.className = 'api-status ' + statusType;
+            el.textContent = text;
+        }
+
         // 🔄 ดึงข้อมูล
         async function loadAttendanceData() {
+            if (isLoadingData) return; // ป้องกันการดึงหลายครั้ง
+            
             const webAppUrl = 'https://script.google.com/macros/s/AKfycbxkthm6Kmq61oSckBHv6wGerL2bdgvn-k1yTWbrqOjeSlcjwgV3JEjoOhq3i8933YRS1w/exec';
+            isLoadingData = true;
             
             try {
-                setApiStatus('loading', '⌛ กำลังเชื่อมต่อ...');
+                setApiStatus('loading', '⌛ อัพเดตข้อมูล...');
                 
                 const response = await fetch(webAppUrl);
 
@@ -447,7 +495,7 @@
                 }
 
                 if (!Array.isArray(rawData)) {
-                    console.warn("Data received is not an array:", rawData); // เปลี่ยนเป็น warn
+                    console.warn("Data received is not an array:", rawData);
                     throw new Error('INVALID_DATA_FORMAT');
                 }
 
@@ -458,62 +506,67 @@
                 });
 
                 setApiStatus('success', '✓ เชื่อมต่อ');
+                // บันทึกข้อมูลลงแคช
+                saveCacheData(validData);
                 processData(validData);
 
             } catch (err) {
-                // เปลี่ยน console.error ออกทั้งหมด เพื่อไม่ให้ระบบฟ้องขึ้นเป็น Error หน้าจอ Canvas
                 console.warn("พบปัญหาการเชื่อมต่อ:", err.message);
                 
-                setApiStatus('error', '✕ ล้มเหลว');
-                
-                let helpMessage = "";
-                if (err.message.startsWith('API_ERROR:')) {
-                    helpMessage = `
-                        2. <strong>ข้อผิดพลาดจากฝั่ง Google Apps Script:</strong><br>
-                           ระบบ Apps Script ของคุณส่งแจ้งเตือนนี้กลับมา: <br>
-                           <code style="display:inline-block; margin-top:5px; padding:4px 8px; background:#fee2e2; border-radius:4px; color:#991b1b;">${err.message.replace('API_ERROR: ', '')}</code><br>
-                           โปรดตรวจสอบโค้ดฝั่ง Google Sheet หรือ Apps Script ของคุณ
-                    `;
-                } else if (err.message === 'INVALID_DATA_FORMAT') {
-                    helpMessage = `
-                        2. <strong>ปัญหา "รูปแบบข้อมูลไม่ถูกต้อง":</strong><br>
-                           API ตอบกลับมาเป็น JSON แต่ไม่ได้เป็นรูปแบบตาราง (Array) โปรดตรวจสอบโค้ดฝั่ง Google Apps Script ในฟังก์ชัน <code>doGet()</code> ว่าส่งข้อมูลกลับมาเป็น Array หรือไม่
-                    `;
-                } else {
-                    helpMessage = `
-                        2. <strong>หากเปิดลิงก์แล้วเจอหน้าแจ้งเตือน (Google Error):</strong><br>
-                           แสดงว่าคุณยังไม่ได้ตั้งค่าสิทธิ์ให้เป็น <b>"ทุกคน" (Anyone)</b> คุณต้องกลับไปที่ Google Apps Script เพื่อกด Deploy เป็น "เวอร์ชันใหม่" (New version) และเปลี่ยนสิทธิ์ให้ถูกต้องก่อน<br><br>
-                        3. <strong>หากเปิดลิงก์แล้วเห็นข้อมูลหน้าตาแบบตัวหนังสือ (JSON):</strong><br>
-                           แสดงว่าฝั่ง API ทำงานปกติ แต่ตัวโปรแกรมพรีวิวนี้ถูกจำกัดการดึงข้อมูลข้ามโดเมน (CORS) <b>วิธีแก้คือ ให้คุณนำไฟล์ HTML นี้ไปเปิดในคอมพิวเตอร์ของคุณเองโดยตรง (ดับเบิลคลิกไฟล์ index.html)</b> ข้อมูลจะแสดงผลได้ตามปกติครับ
+                // ถ้ามีแคชให้ใช้แคช ไม่ต้องแสดงข้อผิดพลาด
+                if (!loadCachedData()) {
+                    setApiStatus('error', '✕ ล้มเหลว');
+                    
+                    let helpMessage = "";
+                    if (err.message.startsWith('API_ERROR:')) {
+                        helpMessage = `
+                            2. <strong>ข้อผิดพลาดจากฝั่ง Google Apps Script:</strong><br>
+                               ระบบ Apps Script ของคุณส่งแจ้งเตือนนี้กลับมา: <br>
+                               <code style="display:inline-block; margin-top:5px; padding:4px 8px; background:#fee2e2; border-radius:4px; color:#991b1b;">${err.message.replace('API_ERROR: ', '')}</code><br>
+                               โปรดตรวจสอบโค้ดฝั่ง Google Sheet หรือ Apps Script ของคุณ
+                        `;
+                    } else if (err.message === 'INVALID_DATA_FORMAT') {
+                        helpMessage = `
+                            2. <strong>ปัญหา "รูปแบบข้อมูลไม่ถูกต้อง":</strong><br>
+                               API ตอบกลับมาเป็น JSON แต่ไม่ได้เป็นรูปแบบตาราง (Array) โปรดตรวจสอบโค้ดฝั่ง Google Apps Script ในฟังก์ชัน <code>doGet()</code> ว่าส่งข้อมูลกลับมาเป็น Array หรือไม่
+                        `;
+                    } else {
+                        helpMessage = `
+                            2. <strong>หากเปิดลิงก์แล้วเจอหน้าแจ้งเตือน (Google Error):</strong><br>
+                               แสดงว่าคุณยังไม่ได้ตั้งค่าสิทธิ์ให้เป็น <b>"ทุกคน" (Anyone)</b> คุณต้องกลับไปที่ Google Apps Script เพื่อกด Deploy เป็น "เวอร์ชันใหม่" (New version) และเปลี่ยนสิทธิ์ให้ถูกต้องก่อน<br><br>
+                            3. <strong>หากเปิดลิงก์แล้วเห็นข้อมูลหน้าตาแบบตัวหนังสือ (JSON):</strong><br>
+                               แสดงว่าฝั่ง API ทำงานปกติ แต่ตัวโปรแกรมพรีวิวนี้ถูกจำกัดการดึงข้อมูลข้ามโดเมน (CORS) <b>วิธีแก้คือ ให้คุณนำไฟล์ HTML นี้ไปเปิดในคอมพิวเตอร์ของคุณเองโดยตรง (ดับเบิลคลิกไฟล์ index.html)</b> ข้อมูลจะแสดงผลได้ตามปกติครับ
+                        `;
+                    }
+
+                    document.getElementById('attendanceTable').innerHTML = `
+                        <tr>
+                            <td colspan="8" style="text-align:center; padding: 40px; color: var(--danger-color); font-weight: 500; line-height: 1.6;">
+                                <div style="font-size: 18px; margin-bottom: 12px;">❌ เชื่อมต่อล้มเหลว หรือดึงข้อมูลผิดพลาด</div>
+                                <div style="background: #fef2f2; border: 1px solid #fca5a5; padding: 20px; border-radius: 8px; display: inline-block; text-align: left; max-width: 650px; color: #991b1b; font-size: 14px;">
+                                    <strong style="font-size: 16px;">💡 วิธีตรวจสอบสาเหตุ:</strong><br><br>
+                                    1. <a href="${webAppUrl}" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 600;">👉 คลิกที่นี่เพื่อเปิดลิงก์ API ในแท็บใหม่</a><br><br>
+                                    ${helpMessage}
+                                </div>
+                                <div style="margin-top: 25px;">
+                                    <button onclick="loadMockData()" style="padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 500; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                                        ✨ ทดลองโหลดข้อมูลจำลอง (Mock Data)
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
                     `;
                 }
-
-                document.getElementById('attendanceTable').innerHTML = `
-                    <tr>
-                        <td colspan="8" style="text-align:center; padding: 40px; color: var(--danger-color); font-weight: 500; line-height: 1.6;">
-                            <div style="font-size: 18px; margin-bottom: 12px;">❌ เชื่อมต่อล้มเหลว หรือดึงข้อมูลผิดพลาด</div>
-                            <div style="background: #fef2f2; border: 1px solid #fca5a5; padding: 20px; border-radius: 8px; display: inline-block; text-align: left; max-width: 650px; color: #991b1b; font-size: 14px;">
-                                <strong style="font-size: 16px;">💡 วิธีตรวจสอบสาเหตุ:</strong><br><br>
-                                1. <a href="${webAppUrl}" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 600;">👉 คลิกที่นี่เพื่อเปิดลิงก์ API ในแท็บใหม่</a><br><br>
-                                ${helpMessage}
-                            </div>
-                            <div style="margin-top: 25px;">
-                                <button onclick="loadMockData()" style="padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 500; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                                    ✨ ทดลองโหลดข้อมูลจำลอง (Mock Data)
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+            } finally {
+                isLoadingData = false;
             }
         }
 
-        // ฟังก์ชันจัดการข้อมูล
+        // ฟังก์ชันจัดการข้อมูล ⚡ (ปรับปรุงดำเนินการอย่างรวดเร็ว)
         function processData(rawData) {
             if (!Array.isArray(rawData)) return;
 
             const uniqueDataMap = new Map();
-
             const normalizeStatus = (val) => {
                 if (!val) return 'absent';
                 const s = String(val).toLowerCase().trim();
@@ -523,39 +576,61 @@
                 return 'absent';
             };
 
-            rawData.forEach(row => {
-                // ดึงข้อมูลและแปลงเป็น String เพื่อป้องกัน Error .trim() เมื่อพบข้อมูลประเภท Number
+            // ประมวลผลข้อมูลแบบ batch
+            for (let i = 0; i < rawData.length; i++) {
+                const row = rawData[i];
                 const name = String(row['Name'] || 'ไม่ระบุชื่อ').trim();
                 const date = String(row['Date'] || '-').trim();
-                const studentId = String(row['StudentID'] || '-').trim();
+                
+                if (!name || name === '-' || !date || date === '-') continue;
+
+                const students = String(row['StudentID'] || '-').trim();
                 const room = String(row['Room'] || '-').trim();
                 const checkIn = String(row['CheckIn'] || '-').trim();
                 const checkOut = String(row['CheckOut'] || '-').trim();
                 const rawStatus = String(row['Status'] || '-').trim();
                 const lateTime = String(row['LateTime'] || '').trim();
 
-                if (!name || name === '-' || !date || date === '-') return;
-
                 const key = `${name}-${date}`;
 
                 if (!uniqueDataMap.has(key)) {
                     uniqueDataMap.set(key, {
-                        name: name,
-                        date: date,
-                        studentId: studentId,
-                        room: room,
-                        lateTime: lateTime,
-                        entryTime: checkIn,
-                        exitTime: checkOut,
+                        name, date, students, room, lateTime,
+                        entryTime: checkIn, exitTime: checkOut,
                         status: normalizeStatus(rawStatus),
                         attendanceDays: 1
                     });
                 }
-            });
+            }
 
+            // แปลงเป็น Array แบบเร็ว
             allAttendanceData = Array.from(uniqueDataMap.values());
-            calculateAttendanceDays();
-            updateDashboard();
+            
+            // คำนวณวันการมาทำงาน
+            calculateAttendanceDaysOptimized();
+            
+            // อัพเดต UI
+            requestAnimationFrame(() => updateDashboard());
+        }
+
+        function calculateAttendanceDaysOptimized() {
+            const monthMap = new Map();
+
+            // วนลูปครั้งเดียว
+            for (let i = 0; i < allAttendanceData.length; i++) {
+                const record = allAttendanceData[i];
+                if (isDateInCurrentMonth(record.date)) {
+                    const key = record.name;
+                    if (record.status !== 'absent') {
+                        monthMap.set(key, (monthMap.get(key) || 0) + 1);
+                    }
+                }
+            }
+
+            // อัพเดตข้อมูล
+            for (let i = 0; i < allAttendanceData.length; i++) {
+                allAttendanceData[i].attendanceDays = monthMap.get(allAttendanceData[i].name) || 0;
+            }
         }
 
         function calculateAttendanceDays() {
@@ -576,11 +651,15 @@
 
         function updateDashboard() {
             if (!allAttendanceData || allAttendanceData.length === 0) return;
+            
+            // อโก่อการแสดง: 1. สถิติ 2. ตาราง 3. Charts (ช้าสุด)
             updateStatistics();
-            updateStatusLists();
             updateAttendanceRates();
+            updateStatusLists();
             updateTable();
-            updateCharts();
+            
+            // โหลด charts หลังจากที่สำคัญ (ช่วย UI ตอบสนองได้เร็ว)
+            setTimeout(() => updateCharts(), 100);
         }
 
         function isDateInCurrentMonth(dateString) {
@@ -845,7 +924,7 @@
                     const [dayB, monthB, yearB] = b.date.split('/').map(Number);
                     const dateA = new Date(yearA, monthA - 1, dayA);
                     const dateB = new Date(yearB, monthB - 1, dayB);
-                    return dateB - dateA;
+                    return dateA - dateB;
                 } catch (e) {
                     return 0;
                 }
@@ -1236,7 +1315,13 @@
         }
 
         function setupEventListeners() {
-            document.getElementById('searchInput').addEventListener('input', updateTable);
+            // Debounce search input
+            let searchTimeout;
+            document.getElementById('searchInput').addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => updateTable(), 300);
+            });
+            
             document.getElementById('statusFilter').addEventListener('change', updateTable);
             document.getElementById('detailModal').addEventListener('click', function (e) {
                 if (e.target === this) closeDetail();
@@ -1244,6 +1329,11 @@
         }
 
         async function refreshData() {
+            if (isLoadingData) {
+                showNotification('⏳ กำลังดึงข้อมูลอยู่...');
+                return;
+            }
+
             const refreshBtn = document.getElementById('refreshBtn');
             if (refreshBtn) {
                 refreshBtn.style.opacity = '0.5';
@@ -1251,6 +1341,10 @@
                 const svg = refreshBtn.querySelector('.icon svg');
                 if (svg) svg.style.animation = 'spin 1s linear infinite';
             }
+
+            // ลบแคช เพื่อบังคับดึงข้อมูลใหม่
+            localStorage.removeItem(CACHE_KEY);
+            localStorage.removeItem(CACHE_EXPIRY_KEY);
 
             await loadAttendanceData();
 

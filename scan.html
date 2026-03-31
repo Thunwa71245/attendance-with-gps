@@ -459,6 +459,14 @@
     function processScan(decodedText) {
       const now = new Date();
       
+      // Determine status based on check-in time
+      // If scanned at 17:00 (5 PM) or later, mark as absent
+      const hour = now.getHours();
+      let status = 'on-time';
+      if (hour >= 17) {
+        status = 'absent';
+      }
+      
       let data = { 
         date: formatDate(now),
         student_id: studentData.id, 
@@ -466,7 +474,7 @@
         room: studentData.room,
         check_in: formatTime(now),
         check_out: '-',
-        status: 'on-time',
+        status: status,
         late_time: '-'
       };
 
