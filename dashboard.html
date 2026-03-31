@@ -42,6 +42,16 @@
             </div>
             <!-- Action Buttons -->
             <div class="wfh-link-wrapper">
+                <a href="index.html" class="wfh-link-btn" title="กลับไปหน้าหลัก">
+                    <span class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                    </span>
+                    <span class="text">หน้าหลัก</span>
+                </a>
                 <button id="refreshBtn" class="wfh-link-btn" title="รีเฟรชข้อมูล" onclick="refreshData()">
                     <span class="icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -594,10 +604,24 @@
                 const key = `${name}-${date}`;
 
                 if (!uniqueDataMap.has(key)) {
+                    let status = normalizeStatus(rawStatus);
+                    
+                    // เช็คว่า checkIn time หลัง 17:00 ไหม ถ้าใช่ให้ตีเป็นขาดอัติโนมัติ
+                    if (checkIn !== '-') {
+                        try {
+                            const [hours, minutes] = checkIn.split(':').map(Number);
+                            if (hours >= 17) {
+                                status = 'absent';
+                            }
+                        } catch (e) {
+                            // หากวิเคราะห์เวลาไม่ได้ให้ใช้สถานะเดิม
+                        }
+                    }
+                    
                     uniqueDataMap.set(key, {
                         name, date, students, room, lateTime,
                         entryTime: checkIn, exitTime: checkOut,
-                        status: normalizeStatus(rawStatus),
+                        status: status,
                         attendanceDays: 1
                     });
                 }
