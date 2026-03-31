@@ -114,9 +114,6 @@ button{
 
 <script>
 
-let scannedRoom = null
-let scanner = null
-
 function onScanSuccess(decodedText){
 
   let url = new URL(decodedText, window.location.origin)
@@ -127,6 +124,15 @@ function onScanSuccess(decodedText){
       scanner.stop().then(()=>scanner.clear())
     }else{
       scanner.clear()
+      let url = new URL(decodedText, window.location.origin)
+  let room = url.searchParams.get("room")
+
+  // 🕒 เวลาปัจจุบัน
+  let now = new Date()
+  let time = now.toLocaleTimeString()
+
+  // 🔥 ส่งไปหน้า result
+  window.location.href = `result.html?room=${room}&time=${time}`
     }
   }
 
