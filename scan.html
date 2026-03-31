@@ -664,6 +664,34 @@
       return `${day}/${month}/${year}`;
     }
 
+    }
+
+    function calculateStatus(checkInTime) {
+      const hour = checkInTime.getHours();
+      const minute = checkInTime.getMinutes();
+      const timeInMinutes = hour * 60 + minute;
+      const workStartTime = 8 * 60; // 8:00 AM
+      
+      if (timeInMinutes <= workStartTime) {
+        return { status: 'on-time', lateTime: '-' };
+      } else {
+        const lateMinutes = timeInMinutes - workStartTime;
+        const hours = Math.floor(lateMinutes / 60);
+        const minutes = lateMinutes % 60;
+        
+        let lateTimeStr = '';
+        if (hours > 0) {
+          lateTimeStr += hours + 'h';
+        }
+        if (minutes > 0) {
+          if (lateTimeStr) lateTimeStr += ' ';
+          lateTimeStr += minutes + 'm';
+        }
+        
+        return { status: 'late', lateTime: lateTimeStr };
+      }
+    }
+
     function processScan(decodedText) {
       const now = new Date();
       checkInTime = formatTime(now);
@@ -676,18 +704,21 @@
         status = 'absent';
       }
       
+      const now = new Date();
+      const statusInfo = calculateStatus(now);
+      
       let data = { 
         date: formatDate(now),
         student_id: studentData.id, 
         name: studentData.name, 
-        room: studentData.room,
-        check_in: checkInTime,
+        room: scannedRoom,
+        check_in: formatTime(now),
         check_out: '-',
-        status: status,
-        late_time: '-'
+        status: statusInfo.status,
+        late_time: statusInfo.lateTime
       };
 
-      document.getElementById("roomDisplay").innerHTML = "<span style='color:#2ecc71;'>✅ Saving data...</span>";
+      // ส่งข้อมูลไปยัง Google Apps Script
       sendAttendanceData(data, 0);
     }
 
@@ -696,7 +727,11 @@
       const apiUrl = typeof GAS_API_URL !== 'undefined' ? GAS_API_URL : '';
 
       if (!apiUrl) {
+<<<<<<< Updated upstream
         showStatus("API URL not configured", 'error');
+=======
+        document.getElementById("roomDisplay").innerHTML = `<span style='color:red;'>⚠️ API URL ไม่ได้ตั้งค่า</span>`;
+>>>>>>> Stashed changes
         isProcessing = false;
         return;
       }
@@ -709,26 +744,31 @@
         },
         body: JSON.stringify(data)
       }).then(response => {
-        console.log('✅ Data sent successfully');
-        document.getElementById("modalIcon").textContent = "✅";
-        document.getElementById("modalTitle").textContent = "สแกนสำเร็จ!";
-        document.getElementById("modalText").textContent = "Check-in recorded at " + checkInTime;
-        document.getElementById("successModal").classList.add("active");
+        // แม้ว่า mode: no-cors จะไม่ให้เราเห็น response แต่เรายังสามารถถือว่าการส่งสำเร็จ
+        // เนื่องจาก fetch ไม่โยน error หากเซิร์ฟเวอร์ตอบกลับ
+        console.log('✅ ส่งข้อมูลสำเร็จ');
+        document.getElementById("successModal").style.display = "flex";
       }).catch((err) => {
-        console.error('❌ Error:', err);
+        console.error('❌ เกิดข้อผิดพลาด:', err);
         
         if (retryCount < maxRetries) {
-          console.log(`🔄 Retrying... (${retryCount + 1}/${maxRetries})`);
-          document.getElementById("roomDisplay").innerHTML = `<span style='color:#f59e0b;'>Retrying... (${retryCount + 1}/${maxRetries})</span>`;
+          console.log(`🔄 กำลังลองใหม่... (ครั้งที่ ${retryCount + 1}/${maxRetries})`);
+          document.getElementById("roomDisplay").innerHTML = `<span style='color:#f59e0b;'>กำลังลองส่งข้อมูลใหม่... (${retryCount + 1}/${maxRetries})</span>`;
           
+          // รอ 2 วินาทีก่อนลองใหม่
+>>>>>>> Stashed changes
           setTimeout(() => {
             sendAttendanceData(data, retryCount + 1);
           }, 2000);
         } else {
+<<<<<<< Updated upstream
           document.getElementById("modalIcon").textContent = "❌";
           document.getElementById("modalTitle").textContent = "Error";
           document.getElementById("modalText").textContent = "Failed to save data. Please check your connection.";
           document.getElementById("successModal").classList.add("active");
+=======
+          document.getElementById("roomDisplay").innerHTML = `<span style='color:red;'>❌ ไม่สามารถบันทึกข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่อเครือข่าย<br><br><button onclick="location.reload()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">ลองใหม่</button></span>`;
+>>>>>>> Stashed changes
           isProcessing = false;
         }
       });

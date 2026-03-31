@@ -455,6 +455,8 @@
                         return true;
                     }
                 }
+                    }
+                }
             } catch (e) {
                 console.log('แคชไม่พร้อมใช้');
             }
@@ -586,6 +588,7 @@
                 return 'absent';
             };
 
+<<<<<<< Updated upstream
             // ประมวลผลข้อมูลแบบ batch
             for (let i = 0; i < rawData.length; i++) {
                 const row = rawData[i];
@@ -601,6 +604,21 @@
                 const checkOut = String(row['CheckOut'] || '-').trim();
                 const rawStatus = String(row['Status'] || '-').trim();
                 const lateTime = String(row['LateTime'] || '').trim();
+=======
+            rawData.forEach(row => {
+                // ดึงข้อมูลจากแต่ละคอลัมน์
+                const name = (row['Name'] || 'ไม่ระบุชื่อ').trim();
+                const date = (row['Date'] || '-').trim();
+                const studentId = (row['StudentID'] || '-').trim();
+                const room = (row['Room'] || '-').trim();
+                const checkIn = (row['CheckIn'] || '-').trim();
+                const checkOut = (row['CheckOut'] || '-').trim();
+                const lateTime = (row['LateTime'] || '-').trim();
+                const rawStatus = (row['Status'] || '').trim();
+
+                // ข้ามแถวที่ไม่มีข้อมูลสำคัญ
+                if (!name || name === '-' || !date || date === '-') return;
+>>>>>>> Stashed changes
 
                 const key = `${name}-${date}`;
 
@@ -620,6 +638,7 @@
                     }
                     
                     uniqueDataMap.set(key, {
+<<<<<<< Updated upstream
                         name, date, studentId, room, lateTime, // แก้ไข property ให้ตรงกัน
                         entryTime: checkIn, exitTime: checkOut,
                         status: status,
@@ -649,6 +668,18 @@
                     if (record.status !== 'absent') {
                         monthMap.set(key, (monthMap.get(key) || 0) + 1);
                     }
+=======
+                        name: name,
+                        date: date,
+                        studentId: studentId,
+                        room: room,
+                        lateTime: lateTime,
+                        entryTime: checkIn,
+                        exitTime: checkOut,
+                        status: normalizeStatus(rawStatus),
+                        attendanceDays: 1
+                    });
+>>>>>>> Stashed changes
                 }
             }
 
@@ -662,6 +693,7 @@
             const monthMap = {};
 
             allAttendanceData.forEach(record => {
+                // นับวันที่มาทำงาน (ไม่ใช่ขาดงาน) ต่อเดือนต่อคน
                 if (isDateInCurrentMonth(record.date)) {
                     const key = record.name;
                     if (!monthMap[key]) monthMap[key] = 0;
@@ -949,7 +981,11 @@
                     const [dayB, monthB, yearB] = b.date.split('/').map(Number);
                     const dateA = new Date(yearA, monthA - 1, dayA);
                     const dateB = new Date(yearB, monthB - 1, dayB);
+<<<<<<< Updated upstream
                     return dateA - dateB;
+=======
+                    return dateB - dateA;
+>>>>>>> Stashed changes
                 } catch (e) {
                     return 0;
                 }
@@ -996,6 +1032,10 @@
                 return matchesSearch && matchesStatus;
             });
 
+<<<<<<< Updated upstream
+=======
+            // เรียงวันที่จากเก่าไปใหม่
+>>>>>>> Stashed changes
             filtered.sort((a, b) => {
                 try {
                     const [dayA, monthA, yearA] = a.date.split('/').map(Number);
