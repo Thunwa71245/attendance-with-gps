@@ -15,38 +15,75 @@ body{
   font-family:Arial;
   background:#f4f6f9;
   text-align:center;
-  padding:30px;
+  padding:20px;
 }
 
 .container{
   background:white;
-  padding:25px;
-  border-radius:10px;
+  padding:20px;
+  border-radius:15px;
   max-width:400px;
   margin:auto;
-  box-shadow:0 0 10px rgba(0,0,0,0.1);
+  box-shadow:0 10px 25px rgba(0,0,0,0.1);
 }
 
+/* 🔥 หัวข้อ */
+.title{
+  font-size:30px;
+  font-weight:bold;
+  margin-bottom:5px;
+}
+
+.subtitle{
+  font-size:14px;
+  color:#666;
+  margin-bottom:15px;
+}
+
+/* 🔥 กล้อง */
+#reader{
+  width:100%;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+/* 🔥 input */
 input{
   width:100%;
-  padding:10px;
+  padding:12px;
   margin:10px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
 }
 
+/* 🔥 ปุ่ม check-in */
 button{
-  padding:12px;
+  padding:14px;
   width:100%;
   background:#2ecc71;
   color:white;
   border:none;
   font-size:16px;
-  border-radius:6px;
+  border-radius:10px;
   cursor:pointer;
 }
 
-#reader{
-  width:300px;
-  margin:auto;
+/* 🔥 ปรับปุ่ม Request Camera */
+#reader__dashboard_section button{
+  background: linear-gradient(135deg,#3498db,#2ecc71) !important;
+  color:white !important;
+  font-weight:bold !important;
+  border:none !important;
+  border-radius:12px !important;
+  padding:14px !important;
+  width:100% !important;
+}
+
+/* 📱 mobile ใหญ่ขึ้น */
+@media (max-width:768px){
+  .title{
+    font-size:34px;
+  }
 }
 
 #formSection{
@@ -66,12 +103,10 @@ button{
 
 <div class="container">
 
-<h2>Intern Check-in</h2>
+<div class="title">📷 สแกนเข้าห้อง</div>
+<div class="subtitle">กรุณาสแกน QR Code เพื่อเช็คชื่อ</div>
 
 <div id="reader"></div>
-
-<!-- 🔥 ปุ่ม upload (มือถือเท่านั้น) -->
-<input type="file" id="qrFile" accept="image/*" style="display:none;">
 
 <div class="roomLabel" id="roomDisplay"></div>
 
@@ -91,125 +126,22 @@ Name
 
 <script>
 
-const ROOM_LAT = 13.901234
-const ROOM_LNG = 100.532456
-const MAX_DISTANCE = 50
-
 let scannedRoom = null
 let scanner = null
 
-// 📱 ตรวจว่าเป็นมือถือ
-const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-
-// ------------------ FUNCTION ------------------
-
-function getDistance(lat1, lon1, lat2, lon2){
-
-  const R = 6371
-
-  const dLat = (lat2-lat1) * Math.PI/180
-  const dLon = (lon2-lon1) * Math.PI/180
-
-  const a =
-  Math.sin(dLat/2) * Math.sin(dLat/2) +
-  Math.cos(lat1*Math.PI/180) *
-  Math.cos(lat2*Math.PI/180) *
-  Math.sin(dLon/2) * Math.sin(dLon/2)
-
-  const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))
-
-  return R*c*1000
-}
-
-function checkDuplicate(){
-
-  let today = new Date().toDateString()
-  let last = localStorage.getItem("checkin")
-
-  if(last == today){
-    alert("วันนี้คุณเช็คชื่อไปแล้ว")
-    return false
-  }
-
-  return true
-}
-
-// ✅ สแกนสำเร็จ
 function onScanSuccess(decodedText){
 
   let url = new URL(decodedText, window.location.origin)
   scannedRoom = url.searchParams.get("room")
 
-  // หยุดกล้อง
   if(scanner){
-    if(scanner.stop){
-      scanner.stop().then(()=>scanner.clear())
-    }else{
-      scanner.clear()
-    }
+    scanner.clear()
   }
 
   document.getElementById("roomDisplay").innerText = "Room : " + scannedRoom
   document.getElementById("formSection").style.display = "block"
 }
 
-// ✅ เริ่มระบบ
-function startSystem(){
-
-  if(isMobile){
-
-    // 📱 MOBILE → บังคับกล้องหลัง
-    Html5Qrcode.getCameras().then(devices => {
-
-      let backCamera = devices.find(d =>
-        d.label.toLowerCase().includes("back") ||
-        d.label.toLowerCase().includes("rear")
-      )
-
-      if(!backCamera){
-        backCamera = devices[devices.length - 1]
-      }
-
-      scanner = new Html5Qrcode("reader")
-
-      scanner.start(
-        backCamera.id,
-        { fps:10, qrbox:200 },
-        onScanSuccess
-      )
-    })
-
-    // 🔥 แสดงปุ่ม upload เฉพาะมือถือ
-    document.getElementById("qrFile").style.display = "block"
-
-  }else{
-
-    // 💻 DESKTOP → ใช้ของเดิม (มี Add File อยู่แล้ว)
-    scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:200})
-    scanner.render(onScanSuccess)
-
-    document.getElementById("qrFile").style.display = "none"
-  }
-}
-
-// ✅ อัปโหลดไฟล์ (มือถือ)
-document.getElementById("qrFile").addEventListener("change", function(e){
-
-  const file = e.target.files[0]
-  if(!file) return
-
-  const tempScanner = new Html5Qrcode("reader")
-
-  tempScanner.scanFile(file, true)
-    .then(decodedText=>{
-      onScanSuccess(decodedText)
-    })
-    .catch(()=>{
-      alert("อ่าน QR ไม่สำเร็จ")
-    })
-})
-
-// ✅ check-in
 function checkin(){
 
   if(!scannedRoom){
@@ -241,8 +173,9 @@ function checkin(){
   })
 }
 
-// 🚀 เริ่มทำงาน
-startSystem()
+// 🔥 ใช้ Scanner เดิม (มี Scan Image อยู่)
+scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:250})
+scanner.render(onScanSuccess)
 
 </script>
 
