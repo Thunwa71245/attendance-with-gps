@@ -160,7 +160,7 @@ function adminLogin() {
             allowEscapeKey: false,
             didOpen: (modal) => modal.classList.add('popup-bounce')
         }).then(() => {
-            window.location.href = 'index.html';
+            window.location.href = 'admin.html';
         });
     } else {
         Swal.fire({
