@@ -42,7 +42,7 @@
             </div>
             <!-- Action Buttons -->
             <div class="wfh-link-wrapper">
-                <a href="index.html" class="wfh-link-btn" title="กลับไปหน้าหลัก">
+                <a href="admin.html" class="wfh-link-btn" title="กลับไปหน้าหลัก">
                     <span class="icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -376,7 +376,7 @@
     <script>
         let allAttendanceData = [];
         let charts = {};
-        let currentMonth = new Date(2026, 2, 30); 
+        let currentMonth = new Date(2026, 2, 30);
         let detailModalMonth = new Date(2026, 2, 30);
         let detailModalEmployeeName = '';
         let detailChartInstance = null;
@@ -445,7 +445,7 @@
             try {
                 const cached = localStorage.getItem(CACHE_KEY);
                 const expiry = localStorage.getItem(CACHE_EXPIRY_KEY);
-                
+
                 if (cached && expiry) {
                     const now = new Date().getTime();
                     if (now < parseInt(expiry)) {
@@ -481,13 +481,13 @@
         // 🔄 ดึงข้อมูล
         async function loadAttendanceData() {
             if (isLoadingData) return; // ป้องกันการดึงหลายครั้ง
-            
+
             const webAppUrl = 'https://script.google.com/macros/s/AKfycbxkthm6Kmq61oSckBHv6wGerL2bdgvn-k1yTWbrqOjeSlcjwgV3JEjoOhq3i8933YRS1w/exec';
             isLoadingData = true;
-            
+
             try {
                 setApiStatus('loading', '⌛ อัพเดตข้อมูล...');
-                
+
                 const response = await fetch(webAppUrl);
 
                 if (!response.ok) {
@@ -522,11 +522,11 @@
 
             } catch (err) {
                 console.warn("พบปัญหาการเชื่อมต่อ:", err.message);
-                
+
                 // ถ้ามีแคชให้ใช้แคช ไม่ต้องแสดงข้อผิดพลาด
                 if (!loadCachedData()) {
                     setApiStatus('error', '✕ ล้มเหลว');
-                    
+
                     let helpMessage = "";
                     if (err.message.startsWith('API_ERROR:')) {
                         helpMessage = `
@@ -591,7 +591,7 @@
                 const row = rawData[i];
                 const name = String(row['Name'] || 'ไม่ระบุชื่อ').trim();
                 const date = String(row['Date'] || '-').trim();
-                
+
                 if (!name || name === '-' || !date || date === '-') continue;
 
                 const students = String(row['StudentID'] || '-').trim();
@@ -605,7 +605,7 @@
 
                 if (!uniqueDataMap.has(key)) {
                     let status = normalizeStatus(rawStatus);
-                    
+
                     // เช็คว่า checkIn time หลัง 17:00 ไหม ถ้าใช่ให้ตีเป็นขาดอัติโนมัติ
                     if (checkIn !== '-') {
                         try {
@@ -617,7 +617,7 @@
                             // หากวิเคราะห์เวลาไม่ได้ให้ใช้สถานะเดิม
                         }
                     }
-                    
+
                     uniqueDataMap.set(key, {
                         name, date, students, room, lateTime,
                         entryTime: checkIn, exitTime: checkOut,
@@ -629,10 +629,10 @@
 
             // แปลงเป็น Array แบบเร็ว
             allAttendanceData = Array.from(uniqueDataMap.values());
-            
+
             // คำนวณวันการมาทำงาน
             calculateAttendanceDaysOptimized();
-            
+
             // อัพเดต UI
             requestAnimationFrame(() => updateDashboard());
         }
@@ -675,13 +675,13 @@
 
         function updateDashboard() {
             if (!allAttendanceData || allAttendanceData.length === 0) return;
-            
+
             // อโก่อการแสดง: 1. สถิติ 2. ตาราง 3. Charts (ช้าสุด)
             updateStatistics();
             updateAttendanceRates();
             updateStatusLists();
             updateTable();
-            
+
             // โหลด charts หลังจากที่สำคัญ (ช่วย UI ตอบสนองได้เร็ว)
             setTimeout(() => updateCharts(), 100);
         }
@@ -691,16 +691,16 @@
             try {
                 const parts = dateString.split('/');
                 if (parts.length !== 3) return false;
-                
+
                 const day = parseInt(parts[0]);
                 const month = parseInt(parts[1]);
                 const year = parseInt(parts[2]);
-                
+
                 if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
-                
+
                 const recordDate = new Date(year, month - 1, day);
-                return recordDate.getMonth() === currentMonth.getMonth() && 
-                       recordDate.getFullYear() === currentMonth.getFullYear();
+                return recordDate.getMonth() === currentMonth.getMonth() &&
+                    recordDate.getFullYear() === currentMonth.getFullYear();
             } catch (e) {
                 return false;
             }
@@ -879,13 +879,13 @@
             try {
                 const parts = dateString.split('/');
                 if (parts.length !== 3) return false;
-                
+
                 const day = parseInt(parts[0]);
                 const d_month = parseInt(parts[1]);
                 const year = parseInt(parts[2]);
-                
+
                 if (isNaN(day) || isNaN(d_month) || isNaN(year)) return false;
-                
+
                 const recordDate = new Date(year, d_month - 1, day);
                 return recordDate.getMonth() === month.getMonth() && recordDate.getFullYear() === month.getFullYear();
             } catch (e) {
@@ -1058,10 +1058,10 @@
             // Chart 1: Attendance per person
             const ctx1 = document.getElementById('attendanceChart').getContext('2d');
             if (charts.attendance) charts.attendance.destroy();
-            
+
             const attendanceLabels = Object.keys(nameGroups).sort();
             const attendanceData = attendanceLabels.map(name => nameGroups[name]);
-            
+
             charts.attendance = new Chart(ctx1, {
                 type: 'bar',
                 data: {
@@ -1103,7 +1103,7 @@
                             borderRadius: 8,
                             caretPadding: 10,
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     return 'วัน: ' + context.parsed.x + ' วัน';
                                 }
                             }
@@ -1134,10 +1134,10 @@
             Object.keys(avgTimeGroups).forEach(name => {
                 averages[name] = (avgTimeGroups[name].sum / avgTimeGroups[name].count).toFixed(2);
             });
-            
+
             const timeLabels = Object.keys(averages).sort();
             const timeData = timeLabels.map(name => averages[name]);
-            
+
             const ctx2 = document.getElementById('averageTimeChart').getContext('2d');
             if (charts.averageTime) charts.averageTime.destroy();
             charts.averageTime = new Chart(ctx2, {
@@ -1181,7 +1181,7 @@
                             bodyFont: { size: 13, family: "'Prompt', sans-serif" },
                             borderRadius: 8,
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     const hours = Math.floor(context.parsed.y);
                                     const mins = Math.round((context.parsed.y - hours) * 60);
                                     return 'เวลา: ' + hours + ':' + (mins < 10 ? '0' : '') + mins;
@@ -1197,7 +1197,7 @@
                             ticks: {
                                 font: { family: "'Prompt', sans-serif", size: 12 },
                                 color: '#64748b',
-                                callback: function(value) {
+                                callback: function (value) {
                                     const hours = Math.floor(value);
                                     const mins = Math.round((value - hours) * 60);
                                     return hours + ':' + (mins < 10 ? '0' : '') + mins;
@@ -1220,7 +1220,7 @@
             const totalDays = onTime + late + absent;
             const ctx3 = document.getElementById('statusChart').getContext('2d');
             if (charts.status) charts.status.destroy();
-            
+
             const presentCount = onTime + late;
             charts.status = new Chart(ctx3, {
                 type: 'doughnut',
@@ -1256,7 +1256,7 @@
                             bodyFont: { size: 13, family: "'Prompt', sans-serif" },
                             borderRadius: 8,
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const value = context.parsed;
                                     const percentage = ((value / total) * 100).toFixed(1);
@@ -1271,7 +1271,7 @@
             // Chart 4: Punctuality ratio
             const ctx4 = document.getElementById('lateChart').getContext('2d');
             if (charts.late) charts.late.destroy();
-            
+
             charts.late = new Chart(ctx4, {
                 type: 'doughnut',
                 data: {
@@ -1306,7 +1306,7 @@
                             bodyFont: { size: 13, family: "'Prompt', sans-serif" },
                             borderRadius: 8,
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     if (total === 0) return 'ไม่มีข้อมูล';
                                     const value = context.parsed;
@@ -1341,11 +1341,11 @@
         function setupEventListeners() {
             // Debounce search input
             let searchTimeout;
-            document.getElementById('searchInput').addEventListener('input', function() {
+            document.getElementById('searchInput').addEventListener('input', function () {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => updateTable(), 300);
             });
-            
+
             document.getElementById('statusFilter').addEventListener('change', updateTable);
             document.getElementById('detailModal').addEventListener('click', function (e) {
                 if (e.target === this) closeDetail();

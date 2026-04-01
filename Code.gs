@@ -5,6 +5,61 @@
 // - "dashboard" : สำหรับบันทึกข้อมูลการเข้างาน
 // - "Users" : สำหรับจัดการข้อมูลผู้ใช้
 
+// ==========================================
+// doGet: ดึงข้อมูลการเข้างานจาก Google Sheet
+// ==========================================
+function doGet(e) {
+  var output = ContentService.createTextOutput();
+  output.setMimeType(ContentService.MimeType.JSON);
+
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("dashboard");
+    if (!sheet) {
+      return output.setContent(JSON.stringify([]));
+    }
+
+    var data = sheet.getDataRange().getValues();
+    if (data.length <= 1) {
+      return output.setContent(JSON.stringify([]));
+    }
+
+    var headers = data[0];
+    var results = [];
+
+    // ดึง parameter จาก URL (ถ้ามี)
+    var studentIdFilter = e && e.parameter ? (e.parameter.student_id || e.parameter.id || '') : '';
+    var nameFilter = e && e.parameter ? (e.parameter.name || '') : '';
+
+    for (var i = 1; i < data.length; i++) {
+      var row = {};
+      for (var j = 0; j < headers.length; j++) {
+        row[headers[j]] = data[i][j];
+      }
+
+      // กรองตาม student_id หรือ name (ถ้ามี parameter)
+      if (studentIdFilter || nameFilter) {
+        var rowId = String(row['StudentID'] || row['student_id'] || '').toLowerCase();
+        var rowName = String(row['Name'] || row['name'] || '').toLowerCase();
+        var matchId = studentIdFilter && rowId === studentIdFilter.toLowerCase();
+        var matchName = nameFilter && rowName.indexOf(nameFilter.toLowerCase()) !== -1;
+
+        if (matchId || matchName) {
+          results.push(row);
+        }
+      } else {
+        // ไม่มี filter → ส่งข้อมูลทั้งหมด
+        results.push(row);
+      }
+    }
+
+    return output.setContent(JSON.stringify(results));
+
+  } catch (error) {
+    Logger.log("doGet Error: " + error.toString());
+    return output.setContent(JSON.stringify({ error: error.toString() }));
+  }
+}
+
 function doPost(e) {
   var output = ContentService.createTextOutput();
   output.setMimeType(ContentService.MimeType.JSON);
@@ -15,7 +70,7 @@ function doPost(e) {
       return output.setContent(JSON.stringify({ 
         success: false, 
         message: "ไม่ได้รับข้อมูล" 
-      });
+      }));
     }
 
     // แปลง JSON ที่ได้รับ

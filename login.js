@@ -88,6 +88,11 @@ function userLogin() {
                 const data = JSON.parse(text);
 
                 if (data.status === "success") {
+                    // Store user info in localStorage for scan page
+                    localStorage.setItem('user_id', id);
+                    localStorage.setItem('user_name', name);
+                    localStorage.setItem('user_role', 'user');
+
                     Swal.fire({
                         icon: 'success',
                         title: 'สำเร็จ',
@@ -150,6 +155,9 @@ function adminLogin() {
     const adminPassInput = document.getElementById("adminPass").value;
 
     if (adminIdInput === "001" && adminPassInput === "Admin001") {
+        // Store admin session
+        localStorage.setItem('user_role', 'admin');
+
         Swal.fire({
             icon: 'success',
             title: 'สำเร็จ',
