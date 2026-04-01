@@ -771,7 +771,19 @@
     }
 
     function processScan(decodedText) {
-      scannedRoom = decodedText; // QR code contains room information
+      // Parse QR code JSON to extract room from payload
+      try {
+        const qrData = JSON.parse(decodedText);
+        if (qrData.payload && qrData.payload.room) {
+          scannedRoom = qrData.payload.room;
+        } else {
+          scannedRoom = decodedText; // Fallback to raw text
+        }
+      } catch (e) {
+        // If not JSON, use raw text as room
+        scannedRoom = decodedText;
+      }
+      
       const now = new Date();
       checkInTime = formatTime(now);
       
@@ -797,38 +809,78 @@
       const apiUrl = typeof GAS_API_URL !== 'undefined' ? GAS_API_URL : '';
 
       if (!apiUrl) {
+        console.error('❌ API URL not configured');
         showStatus("API URL not configured", 'error');
         isProcessing = false;
         return;
       }
 
+      // บันทึกข้อมูลไปยัง console
+      console.log('📤 ส่งข้อมูลไปยัง Google Sheets...');
+      console.log('🔗 API URL:', apiUrl);
+      console.log('📦 Data:', data);
+
+      const bodyData = JSON.stringify(data);
+      
       fetch(apiUrl, {
         method: "POST",
-        mode: "no-cors",
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain',
         },
-        body: JSON.stringify(data)
+        body: bodyData
       }).then(response => {
-        // แม้ว่า mode: no-cors จะไม่ให้เราเห็น response แต่เรายังสามารถถือว่าการส่งสำเร็จ
-        // เนื่องจาก fetch ไม่โยน error หากเซิร์ฟเวอร์ตอบกลับ
-        console.log('✅ ส่งข้อมูลสำเร็จ');
+        console.log('✅ HTTP Response:', response.status);
+        console.log('✅ ส่งข้อมูลสำเร็จไปยัง Google Sheets');
+        console.log('📋 ข้อมูลที่ส่ง:');
+        console.log('  - รหัส:', data.student_id);
+        console.log('  - ชื่อ:', data.name);
+        console.log('  - ห้อง:', data.room);
+        console.log('  - วันที่:', data.date);
+        console.log('  - เวลา:', data.check_in);
+        console.log('  - สถานะ:', data.status);
+        
+        // บันทึกข้อมูลที่ส่งสำเร็จ
+        const sentHistory = JSON.parse(localStorage.getItem('sentHistory')) || [];
+        sentHistory.push({
+          ...data,
+          sentAt: new Date().toISOString()
+        });
+        localStorage.setItem('sentHistory', JSON.stringify(sentHistory));
+        
         document.getElementById("successModal").classList.add("active");
       }).catch((err) => {
-        console.error('❌ เกิดข้อผิดพลาด:', err);
+        console.error('❌ Network Error:', err);
+        console.error('📋 Attempt:', retryCount + 1, 'of', maxRetries);
         
         if (retryCount < maxRetries) {
           console.log(`🔄 กำลังลองใหม่... (ครั้งที่ ${retryCount + 1}/${maxRetries})`);
-          document.getElementById("roomDisplay").innerHTML = `<span style='color: white; font-weight: bold;'>กำลังลองส่งข้อมูลใหม่... (${retryCount + 1}/${maxRetries})</span>`;
+          document.getElementById("roomDisplay").innerHTML = `<span style='color: white; font-weight: bold;'>⚡ กำลังลองส่งข้อมูลใหม่... (${retryCount + 1}/${maxRetries})</span>`;
           
           // รอ 2 วินาทีก่อนลองใหม่
           setTimeout(() => {
             sendAttendanceData(data, retryCount + 1);
           }, 2000);
         } else {
+          console.error('❌ ล้มเหลวหลังจากลองใหม่ 3 ครั้ง');
+          console.error('🔍 Debugging Info:');
+          console.error('  - API URL:', apiUrl);
+          console.error('  - Error:', err.message);
+          console.error('  - Check Google Apps Script endpoint');
+          
           document.getElementById("modalIcon").textContent = "❌";
           document.getElementById("modalTitle").textContent = "เกิดข้อผิดพลาด";
-          document.getElementById("modalText").textContent = "ไม่สามารถบันทึกข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
+          document.getElementById("modalText").innerHTML = `
+            <p style="text-align: center; padding: 20px; color: #666;">
+              <span style="font-size: 40px;">⚠️</span><br>
+              ไม่สามารถแชร์ข้อมูลไปยัง Google Sheets<br>
+              <span style="font-size: 13px; color: #999;">Error: ${err.message}</span><br>
+              <span style="font-size: 12px; color: #999; margin-top: 10px; display: block;">
+                ✓ ดำเนินการลองใหม่ 3 ครั้งแล้ว<br>
+                ✓ ตรวจสอบ Google Apps Script endpoint<br>
+                ✓ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต
+              </span>
+            </p>
+          `;
           document.getElementById("successModal").classList.add("active");
           isProcessing = false;
         }
@@ -841,59 +893,12 @@
     }
 
     function viewHistory() {
-      const apiUrl = typeof GAS_API_URL !== 'undefined' ? GAS_API_URL : '';
-      if (!apiUrl) {
-        document.getElementById("modalText").textContent = "API URL not configured";
+      // Redirect to UserDashboard with student ID as parameter
+      if (!studentData.id) {
+        alert('Student ID not found');
         return;
       }
-
-      document.getElementById("modalIcon").textContent = "⏳";
-      document.getElementById("modalTitle").textContent = "กำลังโหลดประวัติ...";
-      document.getElementById("modalText").textContent = "กรุณารอสักครู่";
-
-      fetch(`${apiUrl}?student_id=${studentData.id}`)
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById("modalIcon").textContent = "📊";
-          document.getElementById("modalTitle").textContent = `ประวัติการเข้างาน - ${studentData.name} (${studentData.id})`;
-          
-          if (data && data.length > 0) {
-            // จัดกลุ่มข้อมูลตามเดือน
-            const groupedData = groupDataByMonth(data);
-            const months = Object.keys(groupedData).sort().reverse(); // เรียงจากเดือนล่าสุด
-            
-            // สร้าง HTML สำหรับ dropdown และตาราง
-            let html = `
-              <p style="text-align: center; margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">📅 ข้อมูลการเข้างานของคุณ แยกตามเดือน</p>
-              <div class="month-selector">
-                <label for="monthSelect">เลือกเดือน:</label>
-                <select id="monthSelect" onchange="changeMonth(this.value)">
-                  ${months.map(month => `<option value="${month}">${getMonthName(month)}</option>`).join('')}
-                </select>
-              </div>
-              <div id="historyContent">
-                ${generateHistoryTable(groupedData[months[0]], months[0])}
-              </div>
-            `;
-            
-            document.getElementById("modalText").innerHTML = html;
-            
-            // เก็บข้อมูลไว้ใน global สำหรับเปลี่ยนเดือน
-            window.historyData = groupedData;
-            window.historyMonths = months;
-          } else {
-            document.getElementById("modalText").textContent = "ไม่พบข้อมูลประวัติ";
-          }
-          
-          document.querySelector(".modal-buttons").innerHTML = '<button class="modal-btn" onclick="backToSuccess()">กลับ</button>';
-        })
-        .catch(err => {
-          console.error('Error fetching history:', err);
-          document.getElementById("modalIcon").textContent = "❌";
-          document.getElementById("modalTitle").textContent = "เกิดข้อผิดพลาด";
-          document.getElementById("modalText").textContent = "ไม่สามารถโหลดประวัติได้ กรุณาลองใหม่อีกครั้ง";
-          document.querySelector(".modal-buttons").innerHTML = '<button class="modal-btn" onclick="backToSuccess()">กลับ</button>';
-        });
+      window.location.href = `UserDashboard.html?student_id=${encodeURIComponent(studentData.id)}`;
     }
 
     function groupDataByMonth(data) {

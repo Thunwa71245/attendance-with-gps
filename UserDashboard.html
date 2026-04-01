@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard - Attendance History</title> 
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Comment out or ignore if api-config.js is missing -->
+  <script src="api-config.js" onerror="console.warn('api-config.js not found, continuing without it')"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #3b82f6;
+      --primary-dark: #1e40af;
+      --success-color: #10b981;
+      --danger-color: #ef4444;
+      --warning-color: #f59e0b;
+      --info-color: #0ea5e9;
+      --bg-color: #f0f9ff;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.12);
+      --shadow-xl: 0 20px 50px rgba(15, 23, 42, 0.2);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    body {
+      font-family: 'Prompt', 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding-bottom: 40px;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e40af 20%, #3b82f6 40%, #0ea5e9 70%, #06b6d4 100%);
+      padding: 50px 24px;
+      box-shadow: var(--shadow-xl);
+      margin-bottom: 40px;
+      border-radius: 0 0 32px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .header-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 30px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      color: #ffffff;
+      margin-bottom: 8px;
+      font-weight: 800;
+      text-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+      letter-spacing: -0.5px;
+    }
+
+    .header-subtitle {
+      color: #e0f2fe;
+      font-size: 14px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      padding: 11px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+      font-size: 14px;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      animation: slideUp 0.6s ease-out 0.2s both;
+    }
+
+    /* Student Info Card */
+    .student-info-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      margin-bottom: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 25px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .info-label {
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .info-value {
+      color: var(--text-main);
+      font-size: 18px;
+      font-weight: 700;
+      word-break: break-all;
+    }
+
+    /* Controls */
+    .controls {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      margin-bottom: 30px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .control-group label {
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .control-group input[type="month"] {
+      padding: 10px 14px;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      background: white;
+      color: var(--text-main);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .control-group input[type="month"]:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-export {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-md);
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+
+    .btn-export:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Statistics */
+    .statistics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      border-left: 4px solid;
+      text-align: center;
+    }
+
+    .stat-card.total {
+      border-left-color: var(--info-color);
+    }
+
+    .stat-card.ontime {
+      border-left-color: var(--success-color);
+    }
+
+    .stat-card.late {
+      border-left-color: var(--danger-color);
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    /* Results */
+    .results-section {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      animation: slideUp 0.6s ease-out 0.3s both;
+    }
+
+    .results-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Table */
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .history-table th {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1px solid var(--border-color);
+      padding: 12px 10px;
+      text-align: left;
+      font-weight: 700;
+      color: var(--text-main);
+      position: sticky;
+      top: 0;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.3px;
+    }
+
+    .history-table td {
+      border: 1px solid var(--border-color);
+      padding: 12px 10px;
+      background: white;
+      color: var(--text-muted);
+    }
+
+    .history-table tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.2px;
+    }
+
+    .status-badge.ontime {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-badge.late {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .empty-state-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header {
+        padding: 35px 20px;
+        margin-bottom: 20px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .container {
+        padding: 0 16px;
+      }
+
+      .student-info-card {
+        grid-template-columns: 1fr;
+        padding: 20px;
+        gap: 15px;
+      }
+
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+      }
+
+      .control-group {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .control-group input[type="month"] {
+        flex: 1;
+      }
+
+      .btn-export {
+        width: 100%;
+      }
+
+      .statistics {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .results-section {
+        padding: 20px;
+      }
+
+      .history-table {
+        font-size: 12px;
+      }
+
+      .history-table th,
+      .history-table td {
+        padding: 8px 6px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-container">
+      <div>
+        <h1>📊 User Dashboard</h1>
+        <div class="header-subtitle">Individual Attendance History</div>
+      </div>
+      <div class="header-buttons">
+        <a href="index.html" class="back-btn">🏠 กลับหน้าหลัก</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Student Info -->
+    <div id="studentInfoCard" class="student-info-card" style="display:none;">
+      <div class="info-item">
+        <div class="info-label">รหัสนักเรียน</div>
+        <div class="info-value" id="displayStudentID">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">ชื่อ</div>
+        <div class="info-value" id="displayName">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">ห้อง</div>
+        <div class="info-value" id="displayRoom">-</div>
+      </div>
+    </div>
+
+    <!-- Controls (Added Month Filter) -->
+    <div class="controls" id="controlsSection" style="display:none;">
+      <div class="control-group">
+        <label for="monthFilter">กรองตามเดือน/ปี:</label>
+        <input type="month" id="monthFilter" onchange="filterByMonth()">
+      </div>
+      <button class="btn-export" onclick="exportToCSV()">📥 ส่งออก CSV</button>
+    </div>
+
+    <!-- Statistics -->
+    <div id="statsContainer" class="statistics" style="display:none;">
+      <div class="stat-card total">
+        <div class="stat-label">📊 ทั้งหมด</div>
+        <div class="stat-value" id="totalDays">0</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">วัน</div>
+      </div>
+      <div class="stat-card ontime">
+        <div class="stat-label">✅ ตรงเวลา</div>
+        <div class="stat-value" id="onTimeDays">0</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">วัน</div>
+      </div>
+      <div class="stat-card late">
+        <div class="stat-label">⚠️ สาย</div>
+        <div class="stat-value" id="lateDays">0</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">วัน</div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="resultsContainer" class="results-section" style="display:none;">
+      <div class="results-title">
+        <span>📋 ประวัติการเข้างาน</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>วันที่</th>
+              <th>รหัส</th>
+              <th>ชื่อ</th>
+              <th>ห้อง</th>
+              <th>เข้าเรียน</th>
+              <th>ออกเรียน</th>
+              <th>สถานะ</th>
+              <th>สาย (เวลา)</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <tr>
+              <td colspan="8" class="no-data">ไม่มีข้อมูล</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="results-section" style="display:none;">
+      <div class="empty-state">
+        <div class="empty-state-icon">📱</div>
+        <div class="empty-state-title">ไม่พบข้อมูลการสแกน</div>
+        <div>กรุณาสแกน QR Code เพื่อดูประวัติการเข้างานของคุณ</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ตั้งค่า API URL ที่นี่หากคุณไม่ได้ใช้ไฟล์ api-config.js
+    const MY_API_URL = 'https://script.google.com/macros/s/AKfycbxkthm6Kmq61oSckBHv6wGerL2bdgvn-k1yTWbrqOjeSlcjwgV3JEjoOhq3i8933YRS1w/exec';
+    const apiUrl = typeof GAS_API_URL !== 'undefined' ? GAS_API_URL : MY_API_URL;
+    
+    let currentStudentData = null;
+    let currentStudentFullData = []; // เก็บข้อมูลทั้งหมดของนักเรียน
+    let currentHistoryData = []; // เก็บข้อมูลที่ถูกกรองแล้ว (เพื่อแสดงและ export)
+
+    // --- ฟังก์ชันอัจฉริยะสำหรับดึงข้อมูลไม่ว่าชื่อคอลัมน์จะเขียนว่าอะไร ---
+    function getVal(record, possibleKeys) {
+      if (!record) return '-';
+      const keys = Object.keys(record);
+      
+      for (let k of possibleKeys) {
+        if (record[k] !== undefined && record[k] !== '') return record[k];
+      }
+      
+      for (let k of possibleKeys) {
+        const match = keys.find(key => key.toLowerCase().includes(k.toLowerCase()));
+        if (match && record[match] !== '') return record[match];
+      }
+
+      return '-';
+    }
+
+    const colIds = ['student_id', 'Student ID', 'รหัสนักศึกษา', 'รหัสนักเรียน', 'รหัสประจำตัว', 'รหัส', 'id'];
+    const colNames = ['name', 'Name', 'ชื่อ-นามสกุล', 'ชื่อ-สกุล', 'ชื่อนามสกุล', 'ชื่อ', 'นามสกุล'];
+    const colRooms = ['room', 'Room', 'ห้อง', 'ชั้น'];
+    const colDates = ['date', 'Date', 'วันที่', 'วัน', 'timestamp', 'เวลา'];
+    const colIns = ['check_in', 'Check In', 'CheckIn', 'เวลาเข้า', 'เข้าเรียน', 'มา'];
+    const colOuts = ['check_out', 'Check Out', 'CheckOut', 'เวลาออก', 'ออกเรียน', 'กลับ'];
+    const colStatus = ['status', 'Status', 'สถานะ', 'การมาเรียน'];
+    const colLates = ['late_time', 'Late Time', 'LateTime', 'เวลาสาย', 'สาย'];
+
+    function getStudentIDFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('student_id') || urlParams.get('name');
+    }
+
+    function showEmptyState() {
+      document.getElementById('emptyState').style.display = 'block';
+      document.getElementById('resultsContainer').style.display = 'none';
+      document.getElementById('statsContainer').style.display = 'none';
+      document.getElementById('studentInfoCard').style.display = 'none';
+      document.getElementById('controlsSection').style.display = 'none';
+    }
+
+    function searchStudent(scannedId) {
+      const searchTerm = scannedId;
+
+      if (!searchTerm) {
+        showEmptyState();
+        return;
+      }
+
+      document.getElementById('resultsContainer').style.display = 'block';
+      document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="8" class="no-data">⏳ กำลังโหลด...</td></tr>';
+
+      if (!apiUrl) {
+        document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="8" class="no-data">❌ API URL ไม่ถูกต้อง</td></tr>';
+        return;
+      }
+
+      fetch(`${apiUrl}?student_id=${encodeURIComponent(searchTerm)}`)
+        .then(response => response.json())
+        .then(data => {
+          const searchLower = searchTerm.toLowerCase();
+          
+          const filteredData = data.filter(record => {
+            const rId = getVal(record, colIds).toString().toLowerCase();
+            const rName = getVal(record, colNames).toString().toLowerCase();
+            return rId === searchLower || rName.includes(searchLower);
+          });
+
+          if (filteredData && filteredData.length > 0) {
+            processInitialData(filteredData);
+          } else if (data && data.length > 0) {
+            processInitialData(data); 
+          } else {
+            document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="8" class="no-data">❌ ไม่พบข้อมูลสำหรับรหัสของคุณ</td></tr>';
+            document.getElementById('statsContainer').style.display = 'none';
+            document.getElementById('studentInfoCard').style.display = 'none';
+            document.getElementById('controlsSection').style.display = 'none';
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching data:', err);
+          document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="8" class="no-data">❌ เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+          document.getElementById('statsContainer').style.display = 'none';
+          document.getElementById('studentInfoCard').style.display = 'none';
+          document.getElementById('controlsSection').style.display = 'none';
+        });
+    }
+
+    // ประมวลผลข้อมูลครั้งแรกเมื่อโหลดเสร็จ
+    function processInitialData(data) {
+      currentStudentFullData = data;
+
+      // ดึงข้อมูลส่วนตัวมาแสดง
+      const firstRecord = data[0];
+      currentStudentData = {
+        student_id: getVal(firstRecord, colIds),
+        name: getVal(firstRecord, colNames),
+        room: getVal(firstRecord, colRooms)
+      };
+
+      document.getElementById('displayStudentID').textContent = currentStudentData.student_id;
+      document.getElementById('displayName').textContent = currentStudentData.name;
+      document.getElementById('displayRoom').textContent = currentStudentData.room;
+      
+      document.getElementById('studentInfoCard').style.display = 'grid';
+      document.getElementById('controlsSection').style.display = 'flex';
+      document.getElementById('emptyState').style.display = 'none';
+      
+      // รีเซ็ตตัวกรองเดือนเป็นค่าว่าง (แสดงทั้งหมด)
+      document.getElementById('monthFilter').value = '';
+
+      // นำข้อมูลไปสร้างตารางและสถิติ
+      renderTableAndStats(currentStudentFullData);
+    }
+
+    // ฟังก์ชันกรองข้อมูลตามเดือนที่เลือก
+    function filterByMonth() {
+      const selectedMonth = document.getElementById('monthFilter').value; // จะได้ฟอร์แมต "YYYY-MM"
+      
+      // ถ้าไม่ได้เลือกเดือน (เคลียร์ค่าทิ้ง) ให้แสดงข้อมูลทั้งหมด
+      if (!selectedMonth) {
+        renderTableAndStats(currentStudentFullData);
+        return;
+      }
+
+      const [inputYearStr, inputMonthStr] = selectedMonth.split('-');
+      const inputYear = parseInt(inputYearStr);
+      const inputMonth = parseInt(inputMonthStr);
+
+      const filtered = currentStudentFullData.filter(record => {
+        const dateStr = getVal(record, colDates);
+        if (dateStr === '-') return false;
+
+        try {
+          // รองรับวันที่รูปแบบ DD/MM/YYYY หรือ DD-MM-YYYY
+          const parts = dateStr.toString().split(/[/-]/);
+          if (parts.length >= 3) {
+            const m = parseInt(parts[1]);
+            const y = parseInt(parts[2]);
+            
+            // เช็คเดือน และ ปี (รองรับทั้งปี ค.ศ. และ พ.ศ.)
+            return m === inputMonth && (y === inputYear || y === inputYear + 543 || y === inputYear - 543);
+          }
+          return false;
+        } catch (e) {
+          return false;
+        }
+      });
+
+      renderTableAndStats(filtered);
+    }
+
+    // ฟังก์ชันสร้างตารางและอัปเดตสถิติ
+    function renderTableAndStats(data) {
+      currentHistoryData = data; // อัปเดตข้อมูลปัจจุบัน (มีผลกับปุ่มส่งออก CSV ด้วย)
+
+      // อัปเดตสถิติ
+      const totalDays = data.length;
+      const onTimeDays = data.filter(r => {
+        const status = getVal(r, colStatus).toString().toLowerCase();
+        return status === 'on-time' || status === 'ตรงเวลา' || status === 'ปกติ' || status.includes('ตรง');
+      }).length;
+      const lateDays = totalDays - onTimeDays;
+
+      document.getElementById('totalDays').textContent = totalDays;
+      document.getElementById('onTimeDays').textContent = onTimeDays;
+      document.getElementById('lateDays').textContent = lateDays;
+      document.getElementById('statsContainer').style.display = 'grid';
+
+      // กรณีเลือกเดือนแล้วไม่มีข้อมูล
+      if (data.length === 0) {
+        document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="8" class="no-data">ไม่มีประวัติการเข้างานในเดือนที่เลือก</td></tr>';
+        document.getElementById('resultsContainer').style.display = 'block';
+        return;
+      }
+
+      // เรียงข้อมูลวันที่ (ใหม่ไปเก่า)
+      data.sort((a, b) => {
+        try {
+          const dateA = getVal(a, colDates);
+          const dateB = getVal(b, colDates);
+          if (dateA === '-' || dateB === '-') return 0;
+          const [dayA, monthA, yearA] = dateA.toString().split('/').map(Number);
+          const [dayB, monthB, yearB] = dateB.toString().split('/').map(Number);
+          if (!dayA || !dayB) return 0;
+          return new Date(yearB, monthB - 1, dayB) - new Date(yearA, monthA - 1, dayA);
+        } catch (e) {
+          return 0;
+        }
+      });
+
+      // สร้างตารางประวัติ
+      let tableHTML = '';
+      data.forEach(record => {
+        const date = getVal(record, colDates);
+        const studentId = getVal(record, colIds);
+        const name = getVal(record, colNames);
+        const room = getVal(record, colRooms);
+        const checkIn = getVal(record, colIns);
+        const checkOut = getVal(record, colOuts);
+        const statusRaw = getVal(record, colStatus).toString().toLowerCase();
+        const lateTime = getVal(record, colLates);
+
+        const statusBadge = (statusRaw.includes('late') || statusRaw.includes('สาย'))
+          ? `<span class="status-badge late">⚠️ สาย</span>` 
+          : `<span class="status-badge ontime">✅ ตรงเวลา</span>`;
+
+        tableHTML += `
+          <tr>
+            <td>${date}</td>
+            <td><strong>${studentId}</strong></td>
+            <td>${name}</td>
+            <td>${room}</td>
+            <td><strong>${checkIn}</strong></td>
+            <td>${checkOut}</td>
+            <td>${statusBadge}</td>
+            <td>${lateTime}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('historyTableBody').innerHTML = tableHTML;
+      document.getElementById('resultsContainer').style.display = 'block';
+    }
+
+    function exportToCSV() {
+      if (!currentStudentData || currentHistoryData.length === 0) {
+        alert('ไม่มีข้อมูลสำหรับส่งออกในขณะนี้');
+        return;
+      }
+
+      let csv = 'วันที่,รหัส,ชื่อ,ห้อง,เข้าเรียน,ออกเรียน,สถานะ,สาย (เวลา)\n';
+
+      currentHistoryData.forEach(record => {
+        const date = getVal(record, colDates);
+        const studentId = getVal(record, colIds);
+        const name = getVal(record, colNames);
+        const room = getVal(record, colRooms);
+        const checkIn = getVal(record, colIns);
+        const checkOut = getVal(record, colOuts);
+        const statusRaw = getVal(record, colStatus).toString().toLowerCase();
+        const statusText = (statusRaw.includes('late') || statusRaw.includes('สาย')) ? 'สาย' : 'ตรงเวลา';
+        const lateTime = getVal(record, colLates);
+
+        csv += `${date},${studentId},"${name}",${room},${checkIn},${checkOut},${statusText},${lateTime}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+
+      link.setAttribute('href', url);
+      link.setAttribute('download', `attendance_${currentStudentData.student_id}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const studentIDFromURL = getStudentIDFromURL();
+      if (studentIDFromURL) {
+        setTimeout(() => {
+          searchStudent(studentIDFromURL);
+        }, 500);
+      } else {
+        showEmptyState();
+      }
+    });
+  </script>
+</body>
+
+</html>
