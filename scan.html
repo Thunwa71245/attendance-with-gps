@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 
 <meta charset="UTF-8">
@@ -38,7 +37,6 @@ body{
   margin-bottom:15px;
 }
 
-/* 💻 คอม */
 #reader{
   width:100%;
   max-width:400px;
@@ -47,20 +45,10 @@ body{
   overflow:hidden;
 }
 
-/* 📱 มือถือ */
 @media (max-width:768px){
   #reader{
-    width:100%;
-    height:65vh; /* 🔥 ใหญ่เฉพาะมือถือ */
+    height:65vh;
   }
-}
-
-input{
-  width:100%;
-  padding:12px;
-  margin:10px 0;
-  border-radius:8px;
-  border:1px solid #ccc;
 }
 
 button{
@@ -70,21 +58,7 @@ button{
   color:white;
   border:none;
   border-radius:10px;
-}
-
-#reader__dashboard_section button{
-  background: linear-gradient(135deg,#3498db,#2ecc71) !important;
-  color:white !important;
-  border-radius:12px !important;
-  width:100% !important;
-}
-
-#formSection{
-  display:none;
-}
-
-.roomLabel{
-  font-weight:bold;
+  margin-top:10px;
 }
 
 </style>
@@ -100,44 +74,72 @@ button{
 
 <div id="reader"></div>
 
+<!-- 🔥 ปุ่มเลือกไฟล์ -->
+<button onclick="document.getElementById('qrFile').click()">
+  📂 Scan an Image File
+</button>
+
 <input type="file" id="qrFile" accept="image/*" style="display:none;">
-
-<div class="roomLabel" id="roomDisplay"></div>
-
-<div id="formSection">
-<input id="student_id" placeholder="Student ID">
-<input id="name" placeholder="Name">
-<button onclick="checkin()">Check-in</button>
-</div>
 
 </div>
 
 <script>
 
+let scanner
+
+// 🔥 ฟังก์ชันหลัก (สำคัญที่สุด)
 function onScanSuccess(decodedText){
 
-  let url = new URL(decodedText, window.location.origin)
-  scannedRoom = url.searchParams.get("room")
+  let room = ""
 
+  try{
+    let url = new URL(decodedText, window.location.origin)
+    room = url.searchParams.get("room")
+  }catch{
+    room = decodedText
+  }
+
+  // 🔥 หยุดกล้อง
   if(scanner){
     if(scanner.stop){
       scanner.stop().then(()=>scanner.clear())
     }else{
       scanner.clear()
-      let url = new URL(decodedText, window.location.origin)
-  let room = url.searchParams.get("room")
-
-  // 🕒 เวลาปัจจุบัน
-  let now = new Date()
-  let time = now.toLocaleTimeString()
-
-  // 🔥 ส่งไปหน้า result
-  window.location.href = `result.html?room=${room}&time=${time}`
     }
   }
 
-  document.getElementById("roomDisplay").innerText = "Room : " + scannedRoom
-  document.getElementById("formSection").style.display = "block"
+  let now = new Date()
+  let time = now.toLocaleTimeString()
+
+  // 🔥 แสดงล็อคอินสำเร็จ
+  document.body.innerHTML = `
+    <div style="
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      background:#f4f6f9;
+      font-family:Arial;
+    ">
+      <div style="
+        background:white;
+        padding:30px;
+        border-radius:15px;
+        text-align:center;
+        box-shadow:0 10px 25px rgba(0,0,0,0.1);
+      ">
+        <div style="font-size:40px;">✅</div>
+        <div style="font-size:22px; font-weight:bold; margin-top:10px;">
+          ล็อคอินสำเร็จ
+        </div>
+      </div>
+    </div>
+  `
+
+  // ⏳ หน่วงแล้วไปหน้า result
+  setTimeout(()=>{
+    window.location.href = `result.html?room=${room}&time=${time}`
+  },1500)
 }
 
 // 🔥 ตรวจอุปกรณ์
@@ -150,18 +152,14 @@ if(isMobile){
 
     let backCamera = devices[devices.length - 1]
 
-    const qrSize = 300 // 🔥 ใหญ่เฉพาะมือถือ
-
     scanner = new Html5Qrcode("reader")
 
     scanner.start(
       backCamera.id,
-      { fps:10, qrbox: qrSize },
+      { fps:10, qrbox:300 },
       onScanSuccess
     )
   })
-
-  document.getElementById("qrFile").style.display = "block"
 
 }else{
 
@@ -169,10 +167,9 @@ if(isMobile){
   scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:200})
   scanner.render(onScanSuccess)
 
-  document.getElementById("qrFile").style.display = "none"
 }
 
-// 🔥 scan file
+// 🔥 scan จากไฟล์
 document.getElementById("qrFile").addEventListener("change", function(e){
 
   const file = e.target.files[0]
@@ -180,7 +177,7 @@ document.getElementById("qrFile").addEventListener("change", function(e){
 
   const tempScanner = new Html5Qrcode("reader")
 
-  tempScanner.scanFile(file, true)
+  tempScanner.scanFile(file, false)
     .then(decodedText=>{
       onScanSuccess(decodedText)
     })
@@ -188,33 +185,6 @@ document.getElementById("qrFile").addEventListener("change", function(e){
       alert("อ่าน QR ไม่สำเร็จ")
     })
 })
-
-function checkin(){
-
-  if(!scannedRoom){
-    alert("กรุณาสแกน QR ก่อน")
-    return
-  }
-
-  let studentID = document.getElementById("student_id").value
-  let name = document.getElementById("name").value
-
-  if(!studentID || !name){
-    alert("กรอกข้อมูลก่อน")
-    return
-  }
-
-  fetch(GAS_API_URL,{
-    method:"POST",
-    mode:"no-cors",
-    body:JSON.stringify({
-      student_id: studentID,
-      name: name,
-      room: scannedRoom
-    })
-  })
-  .then(()=> alert("Check-in success"))
-}
 
 </script>
 
