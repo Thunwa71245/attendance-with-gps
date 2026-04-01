@@ -1,112 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
+
 <head>
-<meta charset="UTF-8">
-<title>Intern Attendance Login</title>
-
-<style>
-
-body{
-    font-family: Arial, sans-serif;
-    background-color:#f4f6f9;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-
-.login-box{
-    background:white;
-    padding:30px;
-    width:300px;
-    border-radius:20px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.1);
-
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-}
-
-h2{
-    text-align:center;
-    margin-bottom:20px;
-}
-
-label{
-    align-self:flex-start;
-}
-
-input{
-    width:90%;
-    padding:10px;
-    margin-top:5px;
-    margin-bottom:15px;
-    border:1px solid #ccc;
-    border-radius:10px;
-}
-
-button{
-    width: 50%;
-    padding:15px;
-    background:#4CAF50;
-    color:white;
-    border:none;
-    border-radius:10px;
-    font-size:16px;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#45a049;
-    transform:translateY(-2px);
-    box-shadow:0 4px 10px rgba(0,0,0,0.2);
-}
-
-button:active{
-    transform:scale(0.96);
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="login.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
 
-<div class="login-box">
+    <div class="wrapper">
 
-<h2>Intern Attendance</h2>
+        <!-- Tabs -->
+        <div class="tabs">
+            <div id="userTab" class="tab active-user" onclick="showUser()">User</div>
+            <div id="adminTab" class="tab" onclick="showAdmin()">Admin</div>
+        </div>
 
-<label>Student ID</label>
-<input type="text" id="student_id">
+        <!-- Card -->
+        <div class="card">
 
-<label>Name</label>
-<input type="text" id="name">
+            <!-- Title -->
+            <div class="title">Login</div>
 
-<button onclick="login()">Login</button>
+            <!-- USER -->
+            <div id="userForm" class="form-box user-bg">
+                <input type="text" id="userId" placeholder="Student ID">
+                <input type="text" id="userName" placeholder="Name">
+                <button class="btn" onclick="userLogin()">Login</button>
+            </div>
 
-</div>
+            <!-- ADMIN -->
+            <div id="adminForm" class="form-box admin-bg hidden">
+                <input type="text" id="adminId" placeholder="Admin ID">
+                <input type="password" id="adminPass" placeholder="Password">
+                <button class="btn" onclick="adminLogin()">Login</button>
+            </div>
 
-<script>
+        </div>
 
-function login(){
+    </div>
 
-    let student_id = document.getElementById("student_id").value;
-    let name = document.getElementById("name").value;
-
-    if(student_id === "" || name === ""){
-        alert("Please fill all fields");
-        return;
-    }
-
-    // save to localStorage
-    localStorage.setItem("student_id", student_id);
-    localStorage.setItem("name", name);
-
-    // go to scan page
-    window.location.href = "scan.html";
-}
-
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="login.js"></script>
 
 </body>
+
 </html>
