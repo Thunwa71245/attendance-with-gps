@@ -4,6 +4,7 @@
 <head>
 
 <title>System Config</title>
+<link rel="icon" href="/favicon.ico">
 
 <style>
 
@@ -40,31 +41,30 @@ font-size:16px;
 <input id="room" value="1-0308">
 
 <label>Start Time</label>
-<input id="start_time" value="08:00">
+<input id="start_time" value="08:00" type="time">
 
 <label>Close Time</label>
-<input id="close_time" value="09:00">
+<input id="close_time" value="09:00" type="time">
+
 
 <button onclick="save()">Save</button>
 
 <script>
 
 function load(){
-
-document.getElementById("gas_url").value =
-localStorage.getItem("gas_url") || ""
-
+    document.getElementById("gas_url").value = localStorage.getItem("gas_url") || "";
+    document.getElementById("room").value = localStorage.getItem("default_room") || "1-0308";
+    document.getElementById("start_time").value = localStorage.getItem("start_time") || "08:00";
+    document.getElementById("close_time").value = localStorage.getItem("close_time") || "09:00";
 }
 
 function save(){
-
-localStorage.setItem(
-"gas_url",
-document.getElementById("gas_url").value
-)
-
-alert("Saved")
-
+    localStorage.setItem("gas_url", document.getElementById("gas_url").value);
+    localStorage.setItem("default_room", document.getElementById("room").value);
+    localStorage.setItem("start_time", document.getElementById("start_time").value);
+    localStorage.setItem("close_time", document.getElementById("close_time").value);
+    
+    alert("Saved");
 }
 
 load()
