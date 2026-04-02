@@ -88,10 +88,14 @@ function userLogin() {
                 const data = JSON.parse(text);
 
                 if (data.status === "success") {
+                    // Save user info to localStorage
+                    localStorage.setItem('studentId', id);
+                    localStorage.setItem('studentName', name);
+
                     Swal.fire({
                         icon: 'success',
                         title: 'สำเร็จ',
-                        text: 'ลงทะเบียนสำเร็จ',
+                        text: 'เข้าสู่ระบบสำเร็จ',
                         confirmButtonColor: '#2e7d32',
                         backdrop: 'rgba(15, 23, 42, 0.5)',
                         allowOutsideClick: false,
@@ -160,7 +164,7 @@ function adminLogin() {
             allowEscapeKey: false,
             didOpen: (modal) => modal.classList.add('popup-bounce')
         }).then(() => {
-            window.location.href = 'index.html';
+            window.location.href = 'admin.html';
         });
     } else {
         Swal.fire({
