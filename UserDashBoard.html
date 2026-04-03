@@ -598,7 +598,7 @@
 
         function getStudentIDFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('student_id') || urlParams.get('name');
+            return urlParams.get('student_id') || urlParams.get('name') || localStorage.getItem('studentId');
         }
 
         function showEmptyState() {
